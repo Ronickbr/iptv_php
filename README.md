@@ -1,22 +1,84 @@
 # KMKZ IPTV
 
-Sistema em PHP para site de IPTV com landing page, autenticacao, dashboard, painel administrativo, API REST, sistema de planos, pagamentos e pontos.
+<p align="center">
+  <img src="public/assets/images/Logo.png" alt="KMKZ IPTV" width="260">
+</p>
+
+<p align="center">
+  <img alt="PHP" src="https://img.shields.io/badge/PHP-8%2B-777BB4?logo=php&logoColor=white">
+  <img alt="MySQL" src="https://img.shields.io/badge/MySQL-5.7%2B-4479A1?logo=mysql&logoColor=white">
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-supported-2496ED?logo=docker&logoColor=white">
+  <img alt="Status" src="https://img.shields.io/badge/status-active-16a34a">
+  <img alt="Install" src="https://img.shields.io/badge/installer-web-blue">
+</p>
+
+Sistema em PHP para operacao de IPTV com landing page, autenticacao, dashboard, painel administrativo, API REST, planos, pagamentos e sistema de pontos.
+
+## Sumario
+
+- [Visao Geral](#visao-geral)
+- [Recursos](#recursos)
+- [Capturas E Fluxo](#capturas-e-fluxo)
+- [Estrutura Do Projeto](#estrutura-do-projeto)
+- [Requisitos](#requisitos)
+- [Instalacao Em Hospedagem](#instalacao-em-hospedagem)
+- [Instalacao Em public_html](#instalacao-em-public_html)
+- [Instalacao Local Com Docker](#instalacao-local-com-docker)
+- [Credenciais E Ambientes](#credenciais-e-ambientes)
+- [Configuracao](#configuracao)
+- [Banco De Dados](#banco-de-dados)
+- [API](#api)
+- [Paginas Principais](#paginas-principais)
+- [Seguranca E Operacao](#seguranca-e-operacao)
+- [Roadmap](#roadmap)
+- [Documentacao Adicional](#documentacao-adicional)
+- [Solucao De Problemas](#solucao-de-problemas)
+- [Publicacao No Git](#publicacao-no-git)
 
 ## Visao Geral
 
-O projeto foi organizado para funcionar tanto em ambiente local com Docker quanto em hospedagem tradicional com Apache e MySQL.
+O KMKZ IPTV foi estruturado para funcionar em dois cenarios:
 
-Principais recursos:
+- hospedagem tradicional com Apache e MySQL
+- ambiente local com Docker
 
-- Landing page em PHP com planos e fluxo de assinatura
-- Login, logout e dashboard de usuarios
-- Painel administrativo
-- API REST em `public/api/`
-- Banco MySQL com estrutura pronta em `database/init.sql`
-- Instalador web para gerar `.env` e configurar o sistema
-- Integracao basica com GA4 e Meta Pixel por variaveis de ambiente
+O projeto utiliza uma pasta publica separada, `public/`, enquanto configuracoes e arquivos internos ficam fora da area exposta.
 
-## Estrutura do Projeto
+## Recursos
+
+- landing page com foco em conversao
+- login, logout e dashboard de usuarios
+- painel administrativo
+- endpoints em `public/api/`
+- instalador web em `public/install.php`
+- leitura automatica do arquivo `.env`
+- importacao do banco a partir de `database/init.sql`
+- sistema de pontos, recompensas e planos
+- integracao opcional com GA4 e Meta Pixel
+
+## Capturas E Fluxo
+
+### Identidade visual
+
+O repositorio ja inclui a identidade visual principal em [Logo.png](file:///d:/Sites/KMKZIPTV/public/assets/images/Logo.png).
+
+### Fluxo principal do sistema
+
+| Tela | Arquivo | Objetivo |
+|---|---|---|
+| Home | [index.php](file:///d:/Sites/KMKZIPTV/public/index.php) | Apresentar planos, proposta comercial e CTA |
+| Login | [login.php](file:///d:/Sites/KMKZIPTV/public/login.php) | Autenticacao dos usuarios |
+| Assinatura | [subscribe.php](file:///d:/Sites/KMKZIPTV/public/subscribe.php) | Captura de dados do assinante |
+| Pagamento | [payment.php](file:///d:/Sites/KMKZIPTV/public/payment.php) | Fluxo de pagamento |
+| Dashboard | [dashboard.php](file:///d:/Sites/KMKZIPTV/public/dashboard.php) | Painel do usuario |
+| Admin | [admin.php](file:///d:/Sites/KMKZIPTV/public/admin.php) | Painel administrativo |
+| Instalador | [install.php](file:///d:/Sites/KMKZIPTV/public/install.php) | Configuracao inicial do projeto |
+
+### Observacao sobre capturas reais
+
+Se voce quiser enriquecer ainda mais o repositorio, o proximo passo ideal e adicionar screenshots reais dessas telas no GitHub e referenciar essas imagens aqui no README.
+
+## Estrutura Do Projeto
 
 ```text
 KMKZIPTV/
@@ -39,24 +101,24 @@ KMKZIPTV/
 
 ## Requisitos
 
-Para hospedagem tradicional:
+### Hospedagem tradicional
 
 - PHP 8.0 ou superior
 - MySQL 5.7+ ou MySQL 8+
-- Extensao `pdo_mysql`
+- extensao `pdo_mysql`
 - Apache com `mod_rewrite`
-- Permissao para gravar o arquivo `.env`
+- permissao para gravar o arquivo `.env`
 
-Para ambiente local com Docker:
+### Ambiente local
 
 - Docker Desktop
 - Docker Compose
 
-## Instalacao em Hospedagem
+## Instalacao Em Hospedagem
 
 ### 1. Envie os arquivos
 
-Consulte [ARQUIVOS_PARA_HOSPEDAGEM.md](file:///d:/Sites/KMKZIPTV/ARQUIVOS_PARA_HOSPEDAGEM.md) para saber exatamente quais pastas devem ser enviadas ao servidor.
+Consulte [ARQUIVOS_PARA_HOSPEDAGEM.md](file:///d:/Sites/KMKZIPTV/ARQUIVOS_PARA_HOSPEDAGEM.md) para saber exatamente o que subir para o servidor.
 
 Resumo do upload:
 
@@ -78,7 +140,7 @@ Exemplo:
 
 ### 3. Crie o banco de dados
 
-Se a sua hospedagem nao permitir que o PHP crie o banco automaticamente, crie antes no painel da hospedagem:
+Se a hospedagem nao permitir que o PHP crie o banco automaticamente, crie o banco antes no painel:
 
 - nome do banco
 - usuario do banco
@@ -88,7 +150,7 @@ Se a sua hospedagem nao permitir que o PHP crie o banco automaticamente, crie an
 
 ### 4. Execute o instalador
 
-Acesse no navegador:
+Acesse:
 
 ```text
 https://seu-dominio.com/install.php
@@ -96,23 +158,53 @@ https://seu-dominio.com/install.php
 
 O instalador em [install.php](file:///d:/Sites/KMKZIPTV/public/install.php) faz o seguinte:
 
-- valida os pre-requisitos
+- valida pre-requisitos
 - conecta ao MySQL
 - importa `database/init.sql`
-- remove usuarios de demonstracao
+- remove usuarios de demonstracao inseguros
 - cria o administrador informado
 - gera o arquivo `.env`
 - cria a pasta `storage/`
 
 ### 5. Acesse o sistema
 
-Depois da instalacao:
-
 - site: `https://seu-dominio.com/`
 - login: `https://seu-dominio.com/login.php`
 - api: `https://seu-dominio.com/api/`
 
-## Instalacao Local com Docker
+## Instalacao Em public_html
+
+Se a sua hospedagem nao permite apontar o dominio diretamente para a pasta `public/`, voce pode manter os caminhos atuais usando a seguinte estrutura:
+
+```text
+/home/SEU_USUARIO/
+|-- config/
+|-- database/
+|-- includes/
+|-- storage/
+|-- .env
+|-- public_html/
+|   |-- index.php
+|   |-- install.php
+|   |-- login.php
+|   |-- dashboard.php
+|   |-- admin.php
+|   |-- api/
+|   |-- assets/
+```
+
+### Como montar essa estrutura
+
+1. Copie o conteudo interno de `public/` para `public_html/`
+2. Deixe `config/`, `database/`, `includes/` e `.env` um nivel acima de `public_html/`
+3. Acesse `https://seu-dominio.com/install.php`
+4. Finalize a instalacao normalmente
+
+### Por que isso funciona
+
+Os arquivos publicos usam `dirname(__DIR__)` para localizar a raiz do projeto. Quando `public_html/` fica um nivel abaixo de `config/`, `database/` e `includes/`, a resolucao continua funcionando sem alterar o codigo.
+
+## Instalacao Local Com Docker
 
 ### Subir o ambiente
 
@@ -125,18 +217,33 @@ docker compose up -d
 - site: `http://localhost:8080`
 - phpMyAdmin: `http://localhost:8081`
 
-Credenciais do banco no Docker:
+### Parar o ambiente
+
+```bash
+docker compose down
+```
+
+## Credenciais E Ambientes
+
+### Credenciais do banco no Docker
 
 - host: `db`
 - banco: `kmkz_iptv`
 - usuario: `root`
 - senha: `rootpassword`
 
-### Parar o ambiente
+### Usuarios de demonstracao do SQL inicial
 
-```bash
-docker compose down
-```
+Quando o banco e carregado diretamente pelo `database/init.sql`, os seguintes usuarios podem existir em ambiente de desenvolvimento:
+
+- admin: `admin@kmkz.com` / `admin123`
+- usuario de teste: `user@test.com` / `admin123`
+
+Em producao:
+
+- use o instalador web para criar seu proprio administrador
+- altere ou remova qualquer conta padrao
+- nunca mantenha essas credenciais em ambiente publico
 
 ## Configuracao
 
@@ -164,11 +271,13 @@ CORS_ALLOWED_ORIGINS=https://seu-dominio.com
 
 GA4_MEASUREMENT_ID=
 META_PIXEL_ID=
+ALLOW_INSTALL=0
+ALLOW_MIGRATIONS=0
 ```
 
 Use [`.env.example`](file:///d:/Sites/KMKZIPTV/.env.example) como referencia.
 
-## Banco de Dados
+## Banco De Dados
 
 O arquivo principal de estrutura e carga inicial e:
 
@@ -185,7 +294,7 @@ Ele inclui:
 
 A API fica em `public/api/`.
 
-Exemplos de endpoints:
+### Endpoints de exemplo
 
 - `POST /api/auth.php?action=login`
 - `POST /api/auth.php?action=logout`
@@ -193,7 +302,7 @@ Exemplos de endpoints:
 - `GET /api/dashboard.php?action=admin`
 - `GET /api/users.php?action=list`
 
-Arquivos principais da API:
+### Arquivos principais da API
 
 - [config.php](file:///d:/Sites/KMKZIPTV/public/api/config.php)
 - [auth.php](file:///d:/Sites/KMKZIPTV/public/api/auth.php)
@@ -210,12 +319,22 @@ Arquivos principais da API:
 - [admin.php](file:///d:/Sites/KMKZIPTV/public/admin.php)
 - [rewards.php](file:///d:/Sites/KMKZIPTV/public/rewards.php)
 
-## Seguranca e Operacao
+## Seguranca E Operacao
 
-- O arquivo `.env` fica fora do versionamento por causa do `.gitignore`
-- O instalador bloqueia nova instalacao quando o `.env` ja existe
-- Em producao, mantenha `APP_DEBUG=false`
-- Apos instalar, recomenda-se remover ou restringir o acesso a `public/install.php`
+- o arquivo `.env` fica fora do versionamento por causa do `.gitignore`
+- o instalador bloqueia nova instalacao quando o `.env` ja existe
+- em producao, mantenha `APP_DEBUG=false`
+- apos instalar, remova ou restrinja `public/install.php`
+- revise contas padrao se voce importar o SQL manualmente
+
+## Roadmap
+
+- adicionar screenshots reais das telas no README
+- integrar gateway de pagamento real
+- melhorar o fluxo de renovacao de assinatura
+- adicionar logs e observabilidade mais completos
+- expandir a documentacao da API
+- adaptar opcionalmente o projeto para cenarios sem `public/`
 
 ## Documentacao Adicional
 
@@ -225,12 +344,12 @@ Arquivos principais da API:
 - [README/QUICK_START.md](file:///d:/Sites/KMKZIPTV/README/QUICK_START.md)
 - [README/API.md](file:///d:/Sites/KMKZIPTV/README/API.md)
 
-## Solucao de Problemas
+## Solucao De Problemas
 
 ### O instalador nao abre
 
-- confirme se o dominio aponta para `public/`
-- confirme se `public/.htaccess` esta sendo respeitado
+- confirme se o dominio aponta para `public/` ou se a estrutura `public_html` foi montada corretamente
+- confirme se `public/.htaccess` ou a regra equivalente esta sendo respeitada
 - confirme se o PHP esta habilitado na hospedagem
 
 ### Erro ao gravar o `.env`
@@ -249,7 +368,7 @@ Arquivos principais da API:
 - revise `CORS_ALLOWED_ORIGINS`
 - teste o endpoint `/api/`
 
-## Publicacao no Git
+## Publicacao No Git
 
 Caso esteja iniciando o versionamento agora:
 
