@@ -51,6 +51,8 @@ O projeto utiliza uma pasta publica separada, `public/`, enquanto configuracoes 
 - painel administrativo
 - endpoints em `public/api/`
 - instalador web em `public/install.php`
+- redirecionamento automatico ao instalador no primeiro acesso
+- deteccao de instalacao incompleta do banco com tela de reparo
 - leitura automatica do arquivo `.env`
 - importacao do banco a partir de `database/init.sql`
 - sistema de pontos, recompensas e planos
@@ -150,7 +152,12 @@ Se a hospedagem nao permitir que o PHP crie o banco automaticamente, crie o banc
 
 ### 4. Execute o instalador
 
-Acesse:
+A instalacao pode acontecer de duas formas:
+
+- automaticamente no primeiro acesso ao sistema, quando o `.env` ainda nao existe
+- manualmente, acessando o instalador diretamente
+
+URL do instalador:
 
 ```text
 https://seu-dominio.com/install.php
@@ -166,7 +173,17 @@ O instalador em [install.php](file:///d:/Sites/KMKZIPTV/public/install.php) faz 
 - gera o arquivo `.env`
 - cria a pasta `storage/`
 
-### 5. Acesse o sistema
+### 5. Comportamento no primeiro acesso
+
+Quando o projeto ainda nao foi configurado:
+
+- se o arquivo `.env` nao existir, o sistema redireciona automaticamente para o instalador
+- se o `.env` existir, mas o banco estiver incompleto ou sem tabelas principais, o sistema mostra uma tela amigavel de reparo
+- na API, esse mesmo estado retorna `503` com um JSON informando que a instalacao precisa ser concluida
+
+Esse comportamento foi centralizado no bootstrap do banco em [database.php](file:///d:/Sites/KMKZIPTV/config/database.php).
+
+### 6. Acesse o sistema
 
 - site: `https://seu-dominio.com/`
 - login: `https://seu-dominio.com/login.php`
@@ -323,6 +340,7 @@ A API fica em `public/api/`.
 
 - o arquivo `.env` fica fora do versionamento por causa do `.gitignore`
 - o instalador bloqueia nova instalacao quando o `.env` ja existe
+- se o `.env` existir mas o banco nao estiver pronto, o sistema entra em modo de reparo
 - em producao, mantenha `APP_DEBUG=false`
 - apos instalar, remova ou restrinja `public/install.php`
 - revise contas padrao se voce importar o SQL manualmente
@@ -362,11 +380,18 @@ A API fica em `public/api/`.
 - revise host, porta, usuario e senha
 - se necessario, crie o banco manualmente no painel da hospedagem
 
+### Instalacao incompleta detectada
+
+- isso acontece quando o `.env` existe, mas o banco ainda nao possui as tabelas principais
+- nesse caso, abra novamente `install.php?force=1`
+- refaca a importacao da estrutura e recrie o admin, se necessario
+
 ### API nao responde corretamente
 
 - confirme `APP_URL` e `API_BASE_URL`
 - revise `CORS_ALLOWED_ORIGINS`
 - teste o endpoint `/api/`
+- se a API retornar `503`, conclua o instalador antes de continuar
 
 ## Publicacao No Git
 
