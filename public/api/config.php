@@ -240,6 +240,19 @@ class ApiUtils {
     public static function verifyPassword($password, $hash) {
         return password_verify($password, $hash);
     }
+
+    public static function formatDate($date, $format = 'd/m/Y H:i') {
+        if ($date === null || $date === '') {
+            return null;
+        }
+
+        try {
+            $dt = new DateTime((string)$date);
+            return $dt->format((string)$format);
+        } catch (Exception $e) {
+            return (string)$date;
+        }
+    }
     
     /**
      * Verificar se usuário está logado
