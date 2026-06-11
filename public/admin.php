@@ -1,14 +1,19 @@
-﻿<?php
-header('Content-Type: text/html; charset=utf-8');
+<?php
+if (ob_get_level() === 0) {
+    ob_start();
+}
+
 /**
  * Painel Administrativo KMKZ IPTV
- * Sistema completo de administra├º├úo integrado com API
+ * Sistema completo de administrativo integrado com API
  */
 require_once __DIR__ . '/../includes/api.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+header('Content-Type: text/html; charset=utf-8');
 
 $authResponse = apiCheckAuth();
 $user = null;
