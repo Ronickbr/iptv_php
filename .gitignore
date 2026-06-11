@@ -61,7 +61,11 @@ Thumbs.db
 # Backup files
 *.bak
 *.backup
+
+# SQL
 *.sql
+!database/*.sql
+!database/**/*.sql
 
 # Temporary files
 tmp/
