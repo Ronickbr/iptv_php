@@ -40,7 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$locked) {
 
         $pdo = createDatabaseConnection($config);
         ensureDatabaseSelected($pdo, $config['db_name']);
-        executeSqlScript($pdo, $sqlFilePath);
+        if (is_file($sqlFilePath) && is_readable($sqlFilePath)) {
+            executeSqlScript($pdo, $sqlFilePath);
+        } else {
+            if (!databaseHasTables($pdo, $config['db_name'], getRequiredDatabaseTables())) {
+                throw new RuntimeException('Arquivo SQL nao encontrado no servidor e o banco ainda nao possui a estrutura. Envie a pasta database/ (com init.sql) ou importe o SQL manualmente e tente novamente.');
+            }
+        }
         removeDemoUsers($pdo, $config['admin_email']);
         createAdminUser($pdo, $config);
         updateSystemSettings($pdo, $config);
@@ -150,6 +156,9 @@ function validateConfig(array $config, array $statusChecks): void
 
     foreach ($statusChecks as $check) {
         if (!$check['ok']) {
+            if (($check['label'] ?? '') === 'Arquivo SQL') {
+                continue;
+            }
             throw new RuntimeException('Corrija os pre-requisitos antes de instalar: ' . $check['label']);
         }
     }
@@ -247,6 +256,30 @@ function shouldSkipStatement(string $sql): bool
 
     return preg_match('/^CREATE\s+DATABASE\b/i', $normalized) === 1
         || preg_match('/^USE\b/i', $normalized) === 1;
+}
+
+function getRequiredDatabaseTables(): array
+{
+    return ['users', 'plans', 'subscriptions'];
+}
+
+function databaseHasTables(PDO $pdo, string $dbName, array $tables): bool
+{
+    try {
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = :schema AND table_name = :table');
+        foreach ($tables as $table) {
+            $stmt->execute([
+                ':schema' => $dbName,
+                ':table' => $table
+            ]);
+            if ((int)$stmt->fetchColumn() === 0) {
+                return false;
+            }
+        }
+        return true;
+    } catch (Throwable $e) {
+        return false;
+    }
 }
 
 function removeDemoUsers(PDO $pdo, string $adminEmail): void
@@ -648,7 +681,7 @@ function createDirectories(string $storageRoot): void
             <div class="card">
                 <h2>Configuracao Inicial</h2>
                 <?php if (!$statusOk): ?>
-                    <p class="note">Corrija os itens em vermelho antes de executar a instalacao.</p>
+                    <p class="note">Se o item "Arquivo SQL" falhar, voce ainda pode instalar se ja importou o banco manualmente. Se o banco estiver vazio, envie a pasta <code>database/</code> para o servidor.</p>
                 <?php endif; ?>
 
                 <form method="post">
@@ -727,8 +760,8 @@ function createDirectories(string $storageRoot): void
                     </div>
 
                     <div class="actions">
-                        <button class="button" type="submit" <?= $statusOk ? '' : 'disabled' ?>>Instalar sistema</button>
-                        <span class="note">Se o usuario do banco nao puder criar databases, crie o banco no painel da hospedagem antes de continuar.</span>
+                        <button class="button" type="submit">Instalar sistema</button>
+                        <span class="note">Se o usuario do banco nao puder criar databases, crie o banco no painel da hospedagem antes de continuar. Se a pasta <code>database/</code> nao estiver no servidor, importe o SQL manualmente antes de instalar.</span>
                     </div>
                 </form>
             </div>
