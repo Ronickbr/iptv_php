@@ -18,7 +18,7 @@ header('Content-Type: text/html; charset=utf-8');
 $authResponse = apiCheckAuth();
 $user = null;
 
-if (isApiResponseValid($authResponse) && ($authResponse['success'] ?? false) && ($authResponse['data']['logged_in'] ?? false)) {
+if (isApiResponseValid($authResponse) && $authResponse['success'] && ($authResponse['data']['logged_in'] ?? false)) {
     $user = $authResponse['data']['user'] ?? null;
 } elseif (isset($_SESSION['user_logged_in'], $_SESSION['user_data']) && $_SESSION['user_logged_in']) {
     $user = $_SESSION['user_data'];
@@ -262,7 +262,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
             text-align: center;
         }
         
-        /* Customiza├º├úo do SweetAlert2 */
+        /* Customização do SweetAlert2 */
         .swal2-popup {
             background: rgba(26, 26, 46, 0.95) !important;
             backdrop-filter: blur(20px) !important;
@@ -504,8 +504,8 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
     </style>
 </head>
 <body data-ga4-id="<?php echo htmlspecialchars($ga4Id, ENT_QUOTES, 'UTF-8'); ?>" data-meta-pixel-id="<?php echo htmlspecialchars($metaPixelId, ENT_QUOTES, 'UTF-8'); ?>">
-    <a class="skip-link" href="#mainContent">Pular para o conte├║do</a>
-    <div class="dashboard-container" id="mainContent">
+    <a class="skip-link" href="#mainContent">Pular para o conteúdo</a>
+    <div class="dashboard-container" id="adminApp">
         <!-- Sidebar -->
         <div class="sidebar admin-sidebar-glass" id="sidebar">
             <div class="sidebar-header">
@@ -522,7 +522,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 <div class="nav-item">
                     <a href="#users" class="nav-link admin-nav-link" data-section="users">
                         <i class="fas fa-users"></i>
-                        <span>Usu├írios</span>
+                        <span>Usuários</span>
                     </a>
                 </div>
                 <div class="nav-item">
@@ -558,7 +558,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 <div class="nav-item">
                     <a href="#settings" class="nav-link admin-nav-link" data-section="settings">
                         <i class="fas fa-cog"></i>
-                        <span>Configura├º├Áes</span>
+                        <span>Configurações</span>
                     </a>
                 </div>
                 <div class="nav-item mt-auto">
@@ -604,7 +604,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <i class="fas fa-users"></i>
                                 </div>
                                 <div class="stat-number" id="totalUsers">-</div>
-                                <div class="stat-label">Total de Usu├írios</div>
+                                <div class="stat-label">Total de Usuários</div>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
@@ -640,7 +640,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     <div class="row">
                         <div class="col-md-8">
                             <div class="glass-panel p-4 mb-4">
-                                <h5 class="mb-4 text-gradient">Receita dos ├Ültimos 6 Meses</h5>
+                                <h5 class="mb-4 text-gradient">Receita dos Últimos 6 Meses</h5>
                                 <div class="chart-container">
                                     <canvas id="revenueChart"></canvas>
                                 </div>
@@ -664,13 +664,13 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 <div id="users" class="section">
                     <div class="admin-table-glass mb-4">
                         <div class="table-header d-flex justify-content-between align-items-center p-4">
-                            <h5 class="mb-0 text-gradient">Gerenciar Usu├írios</h5>
+                            <h5 class="mb-0 text-gradient">Gerenciar Usuários</h5>
                             <button class="btn btn-primary btn-custom" onclick="showCreateUserModal()">
-                                <i class="fas fa-plus"></i> Novo Usu├írio
+                                <i class="fas fa-plus"></i> Novo Usuário
                             </button>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-dark table-hover align-middle admin-table mb-0">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -679,14 +679,14 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                         <th>Tipo</th>
                                         <th>Status</th>
                                         <th>Cadastro</th>
-                                        <th>A├º├Áes</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="usersTableBody">
                                     <tr>
                                         <td colspan="7" class="text-center py-4">
                                             <div class="spinner-border" role="status"></div>
-                                            <div class="mt-2">Carregando usu├írios...</div>
+                                            <div class="mt-2">Carregando usuários...</div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -705,16 +705,16 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             </button>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-dark table-hover align-middle admin-table mb-0">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Usu├írio</th>
+                                        <th>Usuário</th>
                                         <th>Plano</th>
                                         <th>Status</th>
-                                        <th>In├¡cio</th>
+                                        <th>Início</th>
                                         <th>Fim</th>
-                                        <th>A├º├Áes</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="subscriptionsTableBody">
@@ -737,16 +737,16 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             <h5 class="mb-0 text-gradient">Gerenciar Pagamentos</h5>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-dark table-hover align-middle admin-table mb-0">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>Usu├írio</th>
+                                        <th>Usuário</th>
                                         <th>Valor</th>
-                                        <th>M├®todo</th>
+                                        <th>Método</th>
                                         <th>Status</th>
                                         <th>Data</th>
-                                        <th>A├º├Áes</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="paymentsTableBody">
@@ -772,16 +772,16 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             </button>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-dark table-hover align-middle admin-table mb-0">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
                                         <th>Nome</th>
-                                        <th>Dura├º├úo</th>
-                                        <th>Pre├ºo</th>
+                                        <th>Duração</th>
+                                        <th>Preço</th>
                                         <th>Desconto</th>
                                         <th>Status</th>
-                                        <th>A├º├Áes</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="plansTableBody">
@@ -807,7 +807,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             </button>
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-dark table-hover align-middle admin-table mb-0">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -815,7 +815,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                         <th>Pontos</th>
                                         <th>Estoque</th>
                                         <th>Status</th>
-                                        <th>A├º├Áes</th>
+                                        <th>Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody id="rewardsTableBody">
@@ -839,9 +839,9 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <h5 class="mb-3">Conceder Pontos</h5>
                                 <form id="awardPointsForm">
                                     <div class="mb-3">
-                                        <label class="form-label">Usu├írio</label>
+                                        <label class="form-label">Usuário</label>
                                         <select class="form-select" name="user_id" required>
-                                            <option value="">Selecione um usu├írio</option>
+                                            <option value="">Selecione um usuário</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
@@ -850,7 +850,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Motivo</label>
-                                        <input type="text" class="form-control" name="reason" placeholder="Ex: B├┤nus especial">
+                                        <input type="text" class="form-control" name="reason" placeholder="Ex: Bônus especial">
                                     </div>
                                     <button type="submit" class="btn btn-primary btn-custom">
                                         <i class="fas fa-star"></i> Conceder Pontos
@@ -860,11 +860,11 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         </div>
                         <div class="col-md-6">
                             <div class="dashboard-card">
-                                <h5 class="mb-3">Hist├│rico de Pontos</h5>
+                                <h5 class="mb-3">Histórico de Pontos</h5>
                                 <div id="pointsHistory">
                                     <div class="loading">
                                         <div class="spinner-border" role="status"></div>
-                                        <div class="mt-2">Carregando hist├│rico...</div>
+                                        <div class="mt-2">Carregando histórico...</div>
                                     </div>
                                 </div>
                             </div>
@@ -877,7 +877,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     <div class="row">
                         <div class="col-md-8">
                             <div class="dashboard-card">
-                                <h5 class="mb-3">Configura├º├Áes do Sistema</h5>
+                                <h5 class="mb-3">Configurações do Sistema</h5>
                                 <form id="settingsForm">
                                     <div class="row">
                                         <div class="col-md-6">
@@ -890,13 +890,13 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                                 <input type="email" class="form-control" name="contact_email" value="contato@kmkziptv.com">
                                             </div>
                                             <div class="mb-3">
-                                                <label class="form-label">Pontos por Login Di├írio</label>
+                                                <label class="form-label">Pontos por Login Diário</label>
                                                 <input type="number" class="form-control" name="daily_login_points" value="10">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label class="form-label">Pontos por Indica├º├úo</label>
+                                                <label class="form-label">Pontos por Indicação</label>
                                                 <input type="number" class="form-control" name="referral_points" value="100">
                                             </div>
                                             <div class="mb-3">
@@ -910,16 +910,16 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary btn-custom">
-                                        <i class="fas fa-save"></i> Salvar Configura├º├Áes
+                                        <i class="fas fa-save"></i> Salvar Configurações
                                     </button>
                                 </form>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="dashboard-card">
-                                <h5 class="mb-3">Informa├º├Áes do Sistema</h5>
+                                <h5 class="mb-3">Informações do Sistema</h5>
                                 <div class="info-item mb-3">
-                                    <strong>Vers├úo:</strong> 1.0.0
+                                    <strong>Versão:</strong> 1.0.0
                                 </div>
                                 <div class="info-item mb-3">
                                     <strong>PHP:</strong> <?php echo PHP_VERSION; ?>
@@ -928,7 +928,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <strong>Servidor:</strong> <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'N/A'; ?>
                                 </div>
                                 <div class="info-item mb-3">
-                                    <strong>├Ültima Atualiza├º├úo:</strong> <?php echo date('d/m/Y H:i'); ?>
+                                    <strong>Última Atualização:</strong> <?php echo date('d/m/Y H:i'); ?>
                                 </div>
                             </div>
                         </div>
@@ -1002,13 +1002,18 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
+            if (!sidebar || !mainContent) return;
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show');
+                return;
+            }
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
         }
         
-        // Navega├º├úo
+        // Navegação
         document.addEventListener('DOMContentLoaded', function() {
-            // Event listeners para navega├º├úo
+            // Event listeners para navegação
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.addEventListener('click', function(e) {
                     const section = this.dataset.section;
@@ -1016,7 +1021,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         e.preventDefault();
                         navigateToSection(section);
                     }
-                    // Se n├úo tem data-section, deixa o link funcionar normalmente (como logout)
+                    // Se não tem data-section, deixa o link funcionar normalmente (como logout)
                 });
             });
             
@@ -1028,7 +1033,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         });
         
         function navigateToSection(section) {
-            // Remover active de todos os links e se├º├Áes
+            // Remover active de todos os links e seções
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('active');
             });
@@ -1037,28 +1042,28 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 sec.style.display = 'none';
             });
             
-            // Ativar link e se├º├úo atual
+            // Ativar link e seção atual
             document.querySelector(`[data-section="${section}"]`).classList.add('active');
             const sectionElement = document.getElementById(section);
             sectionElement.classList.add('active');
             sectionElement.style.display = 'block';
             
-            // Atualizar t├¡tulo
+            // Atualizar título
             const titles = {
                 dashboard: 'Dashboard',
-                users: 'Usu├írios',
+                users: 'Usuários',
                 subscriptions: 'Assinaturas',
                 payments: 'Pagamentos',
                 plans: 'Planos',
                 rewards: 'Recompensas',
                 points: 'Sistema de Pontos',
-                settings: 'Configura├º├Áes'
+                settings: 'Configurações'
             };
             document.getElementById('pageTitle').textContent = titles[section] || 'Dashboard';
             
             currentSection = section;
             
-            // Carregar dados da se├º├úo
+            // Carregar dados da seção
             switch(section) {
                 case 'dashboard':
                     loadDashboard();
@@ -1094,13 +1099,13 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 if (data && data.success) {
                     const stats = data.data.stats;
                     
-                    // Atualizar estat├¡sticas
+                    // Atualizar estatísticas
                     document.getElementById('totalUsers').textContent = stats.total_users || '0';
                     document.getElementById('activeSubscriptions').textContent = stats.active_subscriptions || '0';
                     document.getElementById('monthlyRevenue').textContent = 'R$ ' + (stats.monthly_revenue || '0,00');
                     document.getElementById('pendingPayments').textContent = stats.pending_payments || '0';
                     
-                    // Carregar gr├ífico
+                    // Carregar gráfico
                     loadRevenueChart(data.data.charts?.monthly_revenue || []);
                     
                     // Carregar atividade recente
@@ -1111,7 +1116,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
             }
         }
         
-        // Carregar gr├ífico de receita
+        // Carregar gráfico de receita
         function loadRevenueChart(data) {
             const ctx = document.getElementById('revenueChart');
             if (!ctx) return;
@@ -1193,7 +1198,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
             }
         }
         
-        // Carregar Usu├írios
+        // Carregar Usuários
         async function loadUsers() {
             try {
                 const data = await apiCall('users.php?action=list');
@@ -1205,7 +1210,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             <td>${user.id}</td>
                             <td>${user.name}</td>
                             <td>${user.email}</td>
-                            <td><span class="badge bg-${user.role === 'admin' ? 'danger' : 'primary'}">${user.role}</span></td>
+                            <td>${(() => { const role = user.role ?? user.user_type ?? 'user'; return `<span class="badge bg-${role === 'admin' ? 'danger' : 'primary'}">${role}</span>`; })()}</td>
                             <td><span class="badge bg-${user.status === 'active' ? 'success' : 'secondary'}">${user.status}</span></td>
                             <td>${new Date(user.created_at).toLocaleDateString('pt-BR')}</td>
                             <td>
@@ -1219,10 +1224,10 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         </tr>
                     `).join('');
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Nenhum usu├írio encontrado</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Nenhum usuário encontrado</td></tr>';
                 }
             } catch (error) {
-                document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Erro ao carregar usu├írios</td></tr>';
+                document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Erro ao carregar usuários</td></tr>';
             }
         }
         
@@ -1301,7 +1306,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         <tr>
                             <td>${plan.id}</td>
                             <td>${plan.name}</td>
-                            <td>${plan.duration_months} m├¬s(es)</td>
+                            <td>${plan.duration_months} mês(es)</td>
                             <td>R$ ${parseFloat(plan.price).toFixed(2)}</td>
                             <td>${plan.discount_percentage || 0}%</td>
                             <td><span class="badge bg-${plan.is_active ? 'success' : 'secondary'}">${plan.is_active ? 'Ativo' : 'Inativo'}</span></td>
@@ -1352,7 +1357,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4">Nenhuma recompensa cadastrada</td></tr>';
                     }
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-warning">Erro na resposta da API ou dados inv├ílidos</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-warning">Erro na resposta da API ou dados inválidos</td></tr>';
                 }
             } catch (error) {
                 document.getElementById('rewardsTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Erro ao carregar recompensas: ' + error.message + '</td></tr>';
@@ -1361,24 +1366,24 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         
         // Carregar Sistema de Pontos
         async function loadPoints() {
-            // Carregar usu├írios para o select
+            // Carregar usuários para o select
             try {
                 const usersData = await apiCall('users.php?action=list');
                 const userSelect = document.querySelector('#awardPointsForm select[name="user_id"]');
                 
                 if (usersData && usersData.success && usersData.data) {
-                    userSelect.innerHTML = '<option value="">Selecione um usu├írio</option>' +
+                    userSelect.innerHTML = '<option value="">Selecione um usuário</option>' +
                         usersData.data.map(user => `<option value="${user.id}">${user.name} (${user.email})</option>`).join('');
                 }
             } catch (error) {
-                console.error('Erro ao carregar usu├írios:', error);
+                console.error('Erro ao carregar usuários:', error);
             }
             
-            // Carregar hist├│rico de pontos
+            // Carregar histórico de pontos
             loadPointsHistory();
         }
         
-        // Carregar hist├│rico de pontos
+        // Carregar histórico de pontos
         async function loadPointsHistory() {
             try {
                 const data = await apiCall('points.php?action=history');
@@ -1398,22 +1403,22 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         </div>
                     `).join('');
                 } else {
-                    container.innerHTML = '<div class="text-center py-4 style="color: white;">Nenhum hist├│rico de pontos</div>';
+                    container.innerHTML = '<div class="text-center py-4 text-muted">Nenhum histórico de pontos</div>';
                 }
             } catch (error) {
-                document.getElementById('pointsHistory').innerHTML = '<div class="text-center text-danger py-4">Erro ao carregar hist├│rico</div>';
+                document.getElementById('pointsHistory').innerHTML = '<div class="text-center text-danger py-4">Erro ao carregar histórico</div>';
             }
         }
         
-        // Carregar Configura├º├Áes
+        // Carregar Configurações
         function loadSettings() {
-            // As configura├º├Áes j├í est├úo carregadas no HTML
-            console.log('Configura├º├Áes carregadas');
+            // As configurações já estão carregadas no HTML
+            console.log('Configurações carregadas');
         }
         
-        // Event Listeners para formul├írios
+        // Event Listeners para formulários
         document.addEventListener('DOMContentLoaded', function() {
-            // Formul├írio de conceder pontos
+            // Formulário de conceder pontos
             document.getElementById('awardPointsForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const formData = new FormData(this);
@@ -1433,11 +1438,11 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         Swal.fire('Erro', response?.message || 'Erro ao conceder pontos', 'error');
                     }
                 } catch (error) {
-                    Swal.fire('Erro', 'Erro de conex├úo', 'error');
+                    Swal.fire('Erro', 'Erro de conexão', 'error');
                 }
             });
             
-            // Formul├írio de configura├º├Áes
+            // Formulário de configurações
             document.getElementById('settingsForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const formData = new FormData(this);
@@ -1450,20 +1455,20 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     });
                     
                     if (response && response.success) {
-                        Swal.fire('Sucesso', 'Configura├º├Áes salvas com sucesso!', 'success');
+                        Swal.fire('Sucesso', 'Configurações salvas com sucesso!', 'success');
                     } else {
-                        Swal.fire('Erro', response?.message || 'Erro ao salvar configura├º├Áes', 'error');
+                        Swal.fire('Erro', response?.message || 'Erro ao salvar configurações', 'error');
                     }
                 } catch (error) {
-                    Swal.fire('Erro', 'Erro de conex├úo', 'error');
+                    Swal.fire('Erro', 'Erro de conexão', 'error');
                 }
             });
         });
         
-        // Fun├º├Áes de a├º├úo (placeholders)
+        // Funções de ação (placeholders)
         function showCreateUserModal() {
             Swal.fire({
-                title: 'Novo Usu├írio',
+                title: 'Novo Usuário',
                 html: `
                     <div class="modern-form text-start" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 15px; padding: 2rem; border: 1px solid rgba(255,255,255,0.1);">
                         <div class="form-group mb-4">
@@ -1471,7 +1476,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <i class="fas fa-user" style="color: var(--purple-primary);"></i>
                                 Nome Completo
                             </label>
-                            <input type="text" id="userName" class="form-control" placeholder="Ex: Jo├úo Silva" 
+                            <input type="text" id="userName" class="form-control" placeholder="Ex: João Silva" 
                                    style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
                         </div>
                         <div class="form-group mb-4">
@@ -1505,11 +1510,11 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="form-group mb-4">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-user-tag" style="color: var(--purple-primary);"></i>
-                                        Tipo de Usu├írio
+                                        Tipo de Usuário
                                     </label>
                                     <select id="userType" class="form-select"
                                             style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
-                                        <option value="user" selected style="background: #1a1a2e; color: white;">Usu├írio</option>
+                                        <option value="user" selected style="background: #1a1a2e; color: white;">Usuário</option>
                                         <option value="admin" style="background: #1a1a2e; color: white;">Administrador</option>
                                     </select>
                                 </div>
@@ -1518,7 +1523,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: 'Criar Usu├írio',
+                confirmButtonText: 'Criar Usuário',
                 cancelButtonText: 'Cancelar',
                 width: '500px',
                 preConfirm: () => {
@@ -1529,7 +1534,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     const userType = document.getElementById('userType').value;
                     
                     if (!name || !email || !password) {
-                        Swal.showValidationMessage('Por favor, preencha todos os campos obrigat├│rios');
+                        Swal.showValidationMessage('Por favor, preencha todos os campos obrigatórios');
                         return false;
                     }
                     
@@ -1550,10 +1555,10 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         });
                         
                         if (response && response.success) {
-                            Swal.fire('Sucesso!', 'Usu├írio criado com sucesso!', 'success');
+                            Swal.fire('Sucesso!', 'Usuário criado com sucesso!', 'success');
                             loadUsers(); // Recarregar lista
                         } else {
-                            Swal.fire('Erro', response?.message || 'Erro ao criar usu├írio', 'error');
+                            Swal.fire('Erro', response?.message || 'Erro ao criar usuário', 'error');
                         }
                     } catch (error) {
                         showApiError(error);
@@ -1567,14 +1572,14 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 const userData = await apiCall(`users.php?action=profile&id=${id}`);
                 
                 if (!userData || !userData.success) {
-                    Swal.fire('Erro', 'Erro ao carregar dados do usu├írio', 'error');
+                    Swal.fire('Erro', 'Erro ao carregar dados do usuário', 'error');
                     return;
                 }
                 
                 const user = userData.data.user;
                 
                 Swal.fire({
-                    title: 'Editar Usu├írio',
+                    title: 'Editar Usuário',
                     html: `
                         <div class="modern-form text-start" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border-radius: 15px; padding: 2rem; border: 1px solid rgba(255,255,255,0.1);">
                             <div class="form-group mb-4">
@@ -1606,11 +1611,11 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <div class="form-group mb-4">
                                         <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                             <i class="fas fa-user-tag" style="color: var(--purple-primary);"></i>
-                                            Tipo de Usu├írio
+                                            Tipo de Usuário
                                         </label>
                                         <select id="editUserType" class="form-select"
                                                 style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
-                                            <option value="user" ${user.user_type === 'user' ? 'selected' : ''} style="background: #1a1a2e; color: white;">Usu├írio</option>
+                                            <option value="user" ${user.user_type === 'user' ? 'selected' : ''} style="background: #1a1a2e; color: white;">Usuário</option>
                                             <option value="admin" ${user.user_type === 'admin' ? 'selected' : ''} style="background: #1a1a2e; color: white;">Administrador</option>
                                         </select>
                                     </div>
@@ -1633,7 +1638,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: 'Salvar Altera├º├Áes',
+                    confirmButtonText: 'Salvar Alterações',
                     cancelButtonText: 'Cancelar',
                     width: '500px',
                     preConfirm: () => {
@@ -1644,7 +1649,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         const status = document.getElementById('editUserStatus').value;
                         
                         if (!name || !email) {
-                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigat├│rios');
+                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigatórios');
                             return false;
                         }
                         
@@ -1666,10 +1671,10 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             });
                             
                             if (response && response.success) {
-                                Swal.fire('Sucesso!', 'Usu├írio atualizado com sucesso!', 'success');
+                                Swal.fire('Sucesso!', 'Usuário atualizado com sucesso!', 'success');
                                 loadUsers(); // Recarregar lista
                             } else {
-                                Swal.fire('Erro', response?.message || 'Erro ao atualizar usu├írio', 'error');
+                                Swal.fire('Erro', response?.message || 'Erro ao atualizar usuário', 'error');
                             }
                         } catch (error) {
                             showApiError(error);
@@ -1678,14 +1683,14 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 });
                 
             } catch (error) {
-                Swal.fire('Erro', 'Erro ao carregar dados do usu├írio', 'error');
+                Swal.fire('Erro', 'Erro ao carregar dados do usuário', 'error');
             }
         }
         
         function deleteUser(id) {
             Swal.fire({
-                title: 'Confirmar Exclus├úo',
-                text: 'Tem certeza que deseja excluir este usu├írio? Esta a├º├úo n├úo pode ser desfeita.',
+                title: 'Confirmar Exclusão',
+                text: 'Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim, excluir',
@@ -1700,10 +1705,10 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         });
                         
                         if (response && response.success) {
-                            Swal.fire('Exclu├¡do!', 'Usu├írio exclu├¡do com sucesso!', 'success');
+                            Swal.fire('Excluído!', 'Usuário excluído com sucesso!', 'success');
                             loadUsers(); // Recarregar lista
                         } else {
-                            Swal.fire('Erro', response?.message || 'Erro ao excluir usu├írio', 'error');
+                            Swal.fire('Erro', response?.message || 'Erro ao excluir usuário', 'error');
                         }
                     } catch (error) {
                         showApiError(error);
@@ -1714,7 +1719,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         
         async function showCreateSubscriptionModal() {
             try {
-                // Carregar usu├írios e planos para os selects
+                // Carregar usuários e planos para os selects
                 const [usersData, plansData] = await Promise.all([
                     apiCall('users.php?action=list'),
                     apiCall('plans.php?action=list')
@@ -1738,11 +1743,11 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             <div class="form-group mb-4">
                                 <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                     <i class="fas fa-user" style="color: var(--purple-primary);"></i>
-                                    Usu├írio
+                                    Usuário
                                 </label>
                                 <select id="subscriptionUser" class="form-select"
                                         style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
-                                    <option value="" style="background: #1a1a2e; color: white;">Selecione um usu├írio</option>
+                                    <option value="" style="background: #1a1a2e; color: white;">Selecione um usuário</option>
                                     ${userOptions}
                                 </select>
                             </div>
@@ -1762,7 +1767,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <div class="form-group mb-4">
                                         <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                             <i class="fas fa-calendar-alt" style="color: var(--purple-primary);"></i>
-                                            Data de In├¡cio
+                                            Data de Início
                                         </label>
                                         <input type="date" id="subscriptionStartDate" class="form-control" value="${new Date().toISOString().split('T')[0]}"
                                                style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -1797,7 +1802,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         const status = document.getElementById('subscriptionStatus').value;
                         
                         if (!userId || !planId || !startDate) {
-                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigat├│rios');
+                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigatórios');
                             return false;
                         }
                         
@@ -1829,13 +1834,13 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 });
                 
             } catch (error) {
-                Swal.fire('Erro', 'Erro ao carregar dados necess├írios', 'error');
+                Swal.fire('Erro', 'Erro ao carregar dados necessários', 'error');
             }
         }
         
         async function editSubscription(id) {
             try {
-                // Carregar dados da assinatura, usu├írios e planos
+                // Carregar dados da assinatura, usuários e planos
                 const [subscriptionData, usersData, plansData] = await Promise.all([
                     apiCall(`subscriptions.php?action=get&id=${id}`),
                     apiCall('users.php?action=list'),
@@ -1866,7 +1871,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             <div class="form-group mb-4">
                                 <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                     <i class="fas fa-user" style="color: var(--purple-primary);"></i>
-                                    Usu├írio
+                                    Usuário
                                 </label>
                                 <select id="editSubscriptionUser" class="form-select"
                                         style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -1888,7 +1893,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <div class="form-group mb-4">
                                         <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                             <i class="fas fa-calendar-alt" style="color: var(--purple-primary);"></i>
-                                            Data de In├¡cio
+                                            Data de Início
                                         </label>
                                         <input type="date" id="editSubscriptionStartDate" class="form-control" value="${subscription.start_date ? subscription.start_date.split(' ')[0] : ''}"
                                                style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -1913,7 +1918,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: 'Salvar Altera├º├Áes',
+                    confirmButtonText: 'Salvar Alterações',
                     cancelButtonText: 'Cancelar',
                     width: '500px',
                     preConfirm: () => {
@@ -1923,7 +1928,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         const status = document.getElementById('editSubscriptionStatus').value;
                         
                         if (!userId || !planId || !startDate) {
-                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigat├│rios');
+                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigatórios');
                             return false;
                         }
                         
@@ -1962,8 +1967,8 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         
         function deleteSubscription(id) {
             Swal.fire({
-                title: 'Confirmar Exclus├úo',
-                text: 'Tem certeza que deseja excluir esta assinatura? Esta a├º├úo n├úo pode ser desfeita.',
+                title: 'Confirmar Exclusão',
+                text: 'Tem certeza que deseja excluir esta assinatura? Esta ação não pode ser desfeita.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim, excluir',
@@ -1978,7 +1983,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         });
                         
                         if (response && response.success) {
-                            Swal.fire('Exclu├¡do!', 'Assinatura exclu├¡da com sucesso!', 'success');
+                            Swal.fire('Excluído!', 'Assinatura excluída com sucesso!', 'success');
                             loadSubscriptions(); // Recarregar lista
                         } else {
                             Swal.fire('Erro', response?.message || 'Erro ao excluir assinatura', 'error');
@@ -2016,7 +2021,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="col-md-6">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-user" style="color: var(--purple-primary);"></i>
-                                        Usu├írio
+                                        Usuário
                                     </label>
                                     <p style="color: #ccc; margin: 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px;">${payment.user_name || 'N/A'}</p>
                                 </div>
@@ -2032,7 +2037,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="col-md-6">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-credit-card" style="color: var(--purple-primary);"></i>
-                                        M├®todo
+                                        Método
                                     </label>
                                     <p style="color: #ccc; margin: 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px;">${payment.payment_method || 'N/A'}</p>
                                 </div>
@@ -2045,7 +2050,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     </label>
                                     <p style="color: #ccc; margin: 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px;">
                                         <span class="badge ${payment.status === 'completed' ? 'bg-success' : payment.status === 'pending' ? 'bg-warning' : 'bg-danger'}">
-                                            ${payment.status === 'completed' ? 'Conclu├¡do' : payment.status === 'pending' ? 'Pendente' : 'Cancelado'}
+                                            ${payment.status === 'completed' ? 'Concluído' : payment.status === 'pending' ? 'Pendente' : 'Cancelado'}
                                         </span>
                                     </p>
                                 </div>
@@ -2061,7 +2066,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="mb-3">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-receipt" style="color: var(--purple-primary);"></i>
-                                        ID da Transa├º├úo
+                                        ID da Transação
                                     </label>
                                     <p style="color: #ccc; margin: 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px; font-family: monospace;">${payment.transaction_id}</p>
                                 </div>
@@ -2070,7 +2075,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="mb-3">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-sticky-note" style="color: var(--purple-primary);"></i>
-                                        Observa├º├Áes
+                                        Observações
                                     </label>
                                     <p style="color: #ccc; margin: 0; padding: 0.5rem; background: rgba(255,255,255,0.1); border-radius: 8px;">${payment.notes}</p>
                                 </div>
@@ -2115,7 +2120,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
             }
         }
         
-        // Fun├º├Áes de Planos - FUNCIONAIS
+        // Funções de Planos - FUNCIONAIS
         function showCreatePlanModal() {
             Swal.fire({
                 title: 'Novo Plano',
@@ -2132,9 +2137,9 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         <div class="form-group mb-4">
                             <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                 <i class="fas fa-align-left" style="color: var(--purple-primary);"></i>
-                                Descri├º├úo
+                                Descrição
                             </label>
-                            <textarea id="planDescription" class="form-control" rows="3" placeholder="Descri├º├úo detalhada do plano"
+                            <textarea id="planDescription" class="form-control" rows="3" placeholder="Descrição detalhada do plano"
                                       style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease; resize: vertical;"></textarea>
                         </div>
                         <div class="row">
@@ -2142,7 +2147,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="form-group mb-4">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-calendar-alt" style="color: var(--purple-primary);"></i>
-                                        Dura├º├úo (meses)
+                                        Duração (meses)
                                     </label>
                                     <input type="number" id="planDuration" class="form-control" min="1" value="1"
                                            style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -2152,7 +2157,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="form-group mb-4">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-dollar-sign" style="color: var(--purple-primary);"></i>
-                                        Pre├ºo (R$)
+                                        Preço (R$)
                                     </label>
                                     <input type="number" id="planPrice" class="form-control" step="0.01" min="0" placeholder="0.00"
                                            style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -2164,7 +2169,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="form-group mb-4">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-mobile-alt" style="color: var(--purple-primary);"></i>
-                                        M├íximo de Dispositivos
+                                        Máximo de Dispositivos
                                     </label>
                                     <input type="number" id="planMaxDevices" class="form-control" min="1" value="1"
                                            style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -2195,7 +2200,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     </label>
                                     <select id="planPopular" class="form-select"
                                             style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
-                                        <option value="0" selected style="background: #1a1a2e; color: white;">N├úo</option>
+                                        <option value="0" selected style="background: #1a1a2e; color: white;">Não</option>
                                         <option value="1" style="background: #1a1a2e; color: white;">Sim</option>
                                     </select>
                                 </div>
@@ -2219,7 +2224,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <i class="fas fa-list" style="color: var(--purple-primary);"></i>
                                 Recursos (um por linha)
                             </label>
-                            <textarea id="planFeatures" class="form-control" rows="4" placeholder="Ex:\nStreaming em HD\nSuporte 24/7\nSem an├║ncios\nAcesso ilimitado"
+                            <textarea id="planFeatures" class="form-control" rows="4" placeholder="Ex:\nStreaming em HD\nSuporte 24/7\nSem anúncios\nAcesso ilimitado"
                                       style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease; resize: vertical;"></textarea>
                         </div>
                     </div>
@@ -2240,7 +2245,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     const featuresText = document.getElementById('planFeatures').value;
                     
                     if (!name || !price || !duration) {
-                        Swal.showValidationMessage('Por favor, preencha todos os campos obrigat├│rios');
+                        Swal.showValidationMessage('Por favor, preencha todos os campos obrigatórios');
                         return false;
                     }
                     
@@ -2310,7 +2315,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             <div class="form-group mb-4">
                                 <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                     <i class="fas fa-align-left" style="color: var(--purple-primary);"></i>
-                                    Descri├º├úo
+                                    Descrição
                                 </label>
                                 <textarea id="editPlanDescription" class="form-control" rows="3"
                                           style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease; resize: vertical;">${plan.description || ''}</textarea>
@@ -2320,7 +2325,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <div class="form-group mb-4">
                                         <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                             <i class="fas fa-calendar-alt" style="color: var(--purple-primary);"></i>
-                                            Dura├º├úo (meses)
+                                            Duração (meses)
                                         </label>
                                         <input type="number" id="editPlanDuration" class="form-control" min="1" value="${plan.duration_months || 1}"
                                                style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -2330,7 +2335,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <div class="form-group mb-4">
                                         <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                             <i class="fas fa-dollar-sign" style="color: var(--purple-primary);"></i>
-                                            Pre├ºo (R$)
+                                            Preço (R$)
                                         </label>
                                         <input type="number" id="editPlanPrice" class="form-control" step="0.01" min="0" value="${plan.price || 0}"
                                                style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -2342,7 +2347,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <div class="form-group mb-4">
                                         <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                             <i class="fas fa-mobile-alt" style="color: var(--purple-primary);"></i>
-                                            M├íximo de Dispositivos
+                                            Máximo de Dispositivos
                                         </label>
                                         <input type="number" id="editPlanMaxDevices" class="form-control" min="1" value="${plan.max_devices || 1}"
                                                style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -2373,7 +2378,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                         </label>
                                         <select id="editPlanPopular" class="form-select"
                                                 style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
-                                            <option value="0" ${!plan.is_popular ? 'selected' : ''} style="background: #1a1a2e; color: white;">N├úo</option>
+                                            <option value="0" ${!plan.is_popular ? 'selected' : ''} style="background: #1a1a2e; color: white;">Não</option>
                                             <option value="1" ${plan.is_popular ? 'selected' : ''} style="background: #1a1a2e; color: white;">Sim</option>
                                         </select>
                                     </div>
@@ -2397,13 +2402,13 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <i class="fas fa-list" style="color: var(--purple-primary);"></i>
                                     Recursos (um por linha)
                                 </label>
-                                <textarea id="editPlanFeatures" class="form-control" rows="4" placeholder="Ex:\nStreaming em HD\nSuporte 24/7\nSem an├║ncios\nAcesso ilimitado"
+                                <textarea id="editPlanFeatures" class="form-control" rows="4" placeholder="Ex:\nStreaming em HD\nSuporte 24/7\nSem anúncios\nAcesso ilimitado"
                                           style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease; resize: vertical;">${Array.isArray(plan.features) ? plan.features.join('\n') : (plan.features || '')}</textarea>
                             </div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: 'Salvar Altera├º├Áes',
+                    confirmButtonText: 'Salvar Alterações',
                     cancelButtonText: 'Cancelar',
                     width: '600px',
                     preConfirm: () => {
@@ -2418,7 +2423,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         const featuresText = document.getElementById('editPlanFeatures').value;
                         
                         if (!name || !price || !duration) {
-                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigat├│rios');
+                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigatórios');
                             return false;
                         }
                         
@@ -2468,8 +2473,8 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         
         function deletePlan(id) {
             Swal.fire({
-                title: 'Confirmar Exclus├úo',
-                text: 'Tem certeza que deseja excluir este plano? Esta a├º├úo n├úo pode ser desfeita.',
+                title: 'Confirmar Exclusão',
+                text: 'Tem certeza que deseja excluir este plano? Esta ação não pode ser desfeita.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim, excluir',
@@ -2484,7 +2489,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         });
                         
                         if (response && response.success) {
-                            Swal.fire('Exclu├¡do!', 'Plano exclu├¡do com sucesso!', 'success');
+                            Swal.fire('Excluído!', 'Plano excluído com sucesso!', 'success');
                             loadPlans(); // Recarregar lista
                         } else {
                             Swal.fire('Erro', response?.message || 'Erro ao excluir plano', 'error');
@@ -2512,9 +2517,9 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         <div class="form-group mb-4">
                             <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                 <i class="fas fa-align-left" style="color: var(--purple-primary);"></i>
-                                Descri├º├úo
+                                Descrição
                             </label>
-                            <textarea id="rewardDescription" class="form-control" rows="3" placeholder="Descri├º├úo detalhada da recompensa"
+                            <textarea id="rewardDescription" class="form-control" rows="3" placeholder="Descrição detalhada da recompensa"
                                       style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease; resize: vertical;"></textarea>
                         </div>
                         <div class="row">
@@ -2522,7 +2527,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                 <div class="form-group mb-4">
                                     <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-coins" style="color: var(--purple-primary);"></i>
-                                        Pontos Necess├írios
+                                        Pontos Necessários
                                     </label>
                                     <input type="number" id="rewardPoints" class="form-control" min="1" placeholder="100"
                                            style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -2538,7 +2543,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                             style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
                                         <option value="produto" selected style="background: #1a1a2e; color: white;">Produto</option>
                                         <option value="desconto" style="background: #1a1a2e; color: white;">Desconto</option>
-                                        <option value="mensalidade_gratis" style="background: #1a1a2e; color: white;">Mensalidade Gr├ítis</option>
+                                        <option value="mensalidade_gratis" style="background: #1a1a2e; color: white;">Mensalidade Grátis</option>
                                     </select>
                                 </div>
                             </div>
@@ -2583,7 +2588,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     const status = document.getElementById('rewardStatus').value;
                     
                     if (!name || !points) {
-                        Swal.showValidationMessage('Por favor, preencha todos os campos obrigat├│rios');
+                        Swal.showValidationMessage('Por favor, preencha todos os campos obrigatórios');
                         return false;
                     }
                     
@@ -2643,7 +2648,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                             <div class="form-group mb-4">
                                 <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                     <i class="fas fa-align-left" style="color: var(--purple-primary);"></i>
-                                    Descri├º├úo
+                                    Descrição
                                 </label>
                                 <textarea id="editRewardDescription" class="form-control" rows="3"
                                           style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease; resize: vertical;">${reward.description || ''}</textarea>
@@ -2653,7 +2658,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                     <div class="form-group mb-4">
                                         <label class="form-label" style="color: white; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                                             <i class="fas fa-coins" style="color: var(--purple-primary);"></i>
-                                            Pontos Necess├írios
+                                            Pontos Necessários
                                         </label>
                                         <input type="number" id="editRewardPoints" class="form-control" min="1" value="${reward.points_required || ''}"
                                                style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
@@ -2669,7 +2674,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                                 style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 10px; padding: 0.75rem 1rem; transition: all 0.3s ease;">
                                             <option value="produto" ${(reward.reward_type || reward.type) === 'produto' ? 'selected' : ''} style="background: #1a1a2e; color: white;">Produto</option>
                                             <option value="desconto" ${(reward.reward_type || reward.type) === 'desconto' ? 'selected' : ''} style="background: #1a1a2e; color: white;">Desconto</option>
-                                            <option value="mensalidade_gratis" ${(reward.reward_type || reward.type) === 'mensalidade_gratis' ? 'selected' : ''} style="background: #1a1a2e; color: white;">Mensalidade Gr├ítis</option>
+                                            <option value="mensalidade_gratis" ${(reward.reward_type || reward.type) === 'mensalidade_gratis' ? 'selected' : ''} style="background: #1a1a2e; color: white;">Mensalidade Grátis</option>
                                         </select>
                                     </div>
                                 </div>
@@ -2702,7 +2707,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: 'Salvar Altera├º├Áes',
+                    confirmButtonText: 'Salvar Alterações',
                     cancelButtonText: 'Cancelar',
                     width: '500px',
                     preConfirm: () => {
@@ -2714,7 +2719,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         const status = document.getElementById('editRewardStatus').value;
                         
                         if (!name || !points) {
-                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigat├│rios');
+                            Swal.showValidationMessage('Por favor, preencha todos os campos obrigatórios');
                             return false;
                         }
                         
@@ -2755,8 +2760,8 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         
         function deleteReward(id) {
             Swal.fire({
-                title: 'Confirmar Exclus├úo',
-                text: 'Tem certeza que deseja excluir esta recompensa? Esta a├º├úo n├úo pode ser desfeita.',
+                title: 'Confirmar Exclusão',
+                text: 'Tem certeza que deseja excluir esta recompensa? Esta ação não pode ser desfeita.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim, excluir',
@@ -2771,7 +2776,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                         });
                         
                         if (response && response.success) {
-                            Swal.fire('Exclu├¡do!', 'Recompensa exclu├¡da com sucesso!', 'success');
+                            Swal.fire('Excluído!', 'Recompensa excluída com sucesso!', 'success');
                             loadRewards(); // Recarregar lista
                         } else {
                             Swal.fire('Erro', response?.message || 'Erro ao excluir recompensa', 'error');

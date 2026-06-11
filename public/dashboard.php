@@ -100,6 +100,12 @@ $rewards = $dashboardData['available_rewards'] ?? [];
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $path = strtok($_SERVER['REQUEST_URI'] ?? '/dashboard.php', '?');
+$baseDir = rtrim(dirname($path), '/');
+if ($baseDir === '.' || $baseDir === '/') {
+    $baseDir = '';
+}
+$referralCodeValue = $user['referral_code'] ?? $user['id'];
+$referralUrl = $scheme . '://' . $host . $baseDir . '/ref.php?code=' . $referralCodeValue;
 $canonicalUrl = $scheme . '://' . $host . $path;
 $ga4Id = getenv('GA4_MEASUREMENT_ID') ?: '';
 $metaPixelId = getenv('META_PIXEL_ID') ?: '';
@@ -140,7 +146,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
     <!-- Mesh Gradient Background -->
     <div class="mesh-gradient"></div>
 
-    <div class="dashboard-container" id="mainContent">
+    <div class="dashboard-container" id="dashboardApp">
         <div class="sidebar admin-sidebar-glass" id="sidebar">
             <div class="sidebar-header">
                 <img src="assets/images/Logo.png" alt="KMKZ IPTV" width="147" height="80" class="logo" decoding="async" fetchpriority="high">
@@ -461,8 +467,8 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                         <label class="form-label fw-bold text-muted small text-uppercase opacity-75">Seu Link de Indicação</label>
                                         <div class="input-group glass-input-group">
                                             <input type="text" class="form-control bg-white-5 border-white-10 text-white rounded-start-4" id="referralLink" 
-                                               value="<?php echo $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/ref.php?code=' . ($user['referral_code'] ?? $user['id']); ?>" readonly>
-                                            <button class="btn btn-premium rounded-end-4" type="button" onclick="copyReferralLink()" title="Copiar link">
+                                               value="<?php echo htmlspecialchars($referralUrl, ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                                            <button class="btn btn-premium rounded-end-4" type="button" onclick="copyReferralLink(this)" title="Copiar link">
                                                 <i class="fas fa-copy"></i>
                                             </button>
                                         </div>
@@ -472,8 +478,8 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                         <label class="form-label fw-bold text-muted small text-uppercase opacity-75">Seu Código de Indicação</label>
                                         <div class="input-group glass-input-group">
                                             <input type="text" class="form-control bg-white-5 border-white-10 text-white rounded-start-4" id="referralCode" 
-                                               value="<?php echo $user['referral_code'] ?? 'Gerando...'; ?>" readonly>
-                                            <button class="btn btn-premium rounded-end-4" type="button" onclick="copyReferralCode()" title="Copiar código">
+                                               value="<?php echo htmlspecialchars($user['referral_code'] ?? 'Gerando...', ENT_QUOTES, 'UTF-8'); ?>" readonly>
+                                            <button class="btn btn-premium rounded-end-4" type="button" onclick="copyReferralCode(this)" title="Copiar código">
                                                 <i class="fas fa-copy"></i>
                                             </button>
                                         </div>
@@ -599,7 +605,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                                                 <p class="text-muted small mb-4 flex-grow-1"><?php echo htmlspecialchars($reward['description']); ?></p>
                                                 <div class="d-flex align-items-center justify-content-between mt-auto">
                                                     <div class="reward-points fw-bold text-warning"><?php echo $reward['points_required']; ?> pts</div>
-                                                    <button class="btn btn-premium btn-sm py-1 px-3" onclick="redeemReward(<?php echo $reward['id']; ?>)" 
+                                                    <button class="btn btn-premium btn-sm py-1 px-3" onclick="redeemReward(this, <?php echo $reward['id']; ?>)" 
                                                             <?php echo (($user['points'] ?? 0) < $reward['points_required']) ? 'disabled' : ''; ?>>
                                                         <?php echo (($user['points'] ?? 0) >= $reward['points_required']) ? 'Resgatar' : 'Bloqueado'; ?>
                                                     </button>
@@ -1005,24 +1011,56 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         }
         
         // Referral functions
-        function copyReferralLink() {
-            const linkInput = document.getElementById('referralLink');
-            linkInput.select();
-            linkInput.setSelectionRange(0, 99999);
-            document.execCommand('copy');
-            
-            // Show success message
-            const button = event.target.closest('button');
+        async function copyTextToClipboard(text) {
+            if (navigator.clipboard?.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (error) {
+                }
+            }
+
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.top = '0';
+                textarea.style.left = '0';
+                textarea.style.opacity = '0';
+                textarea.style.pointerEvents = 'none';
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                return ok;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function flashCopyButton(button, ok) {
+            if (!button) return;
+
             const originalHTML = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-check"></i>';
-            button.classList.add('btn-success');
-            button.classList.remove('btn-outline-secondary');
-            
+            const originalClassName = button.className;
+
+            button.innerHTML = ok ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
+            button.classList.add(ok ? 'btn-success' : 'btn-danger');
+            button.classList.remove('btn-premium');
+
             setTimeout(() => {
                 button.innerHTML = originalHTML;
-                button.classList.remove('btn-success');
-                button.classList.add('btn-outline-secondary');
+                button.className = originalClassName;
             }, 2000);
+        }
+
+        async function copyReferralLink(button) {
+            const linkInput = document.getElementById('referralLink');
+            const text = linkInput?.value || '';
+            const ok = await copyTextToClipboard(text);
+            flashCopyButton(button, ok);
         }
         
         function shareWhatsApp() {
@@ -1038,24 +1076,11 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
             window.open(facebookUrl, '_blank');
         }
         
-        function copyReferralCode() {
+        async function copyReferralCode(button) {
             const codeInput = document.getElementById('referralCode');
-            codeInput.select();
-            codeInput.setSelectionRange(0, 99999);
-            document.execCommand('copy');
-            
-            // Show success feedback
-            const button = event.target.closest('button');
-            const originalHTML = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-check"></i>';
-            button.classList.add('btn-success');
-            button.classList.remove('btn-outline-secondary');
-            
-            setTimeout(() => {
-                button.innerHTML = originalHTML;
-                button.classList.remove('btn-success');
-                button.classList.add('btn-outline-secondary');
-            }, 2000);
+            const text = codeInput?.value || '';
+            const ok = await copyTextToClipboard(text);
+            flashCopyButton(button, ok);
         }
         
         function shareEmail() {
@@ -1097,10 +1122,9 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
             return result;
         }
         
-        function redeemReward(rewardId) {
+        function redeemReward(button, rewardId) {
             if (confirm('Deseja realmente resgatar esta recompensa?')) {
                 // Show loading state
-                const button = event.target;
                 const originalText = button.textContent;
                 button.textContent = 'Processando...';
                 button.disabled = true;

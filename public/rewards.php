@@ -2,17 +2,28 @@
 header('Content-Type: text/html; charset=utf-8');
 session_start();
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/api.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-// Verificar se usuário está logado (simulação)
-if (!isset($_SESSION['user_id'])) {
-    $_SESSION['user_id'] = 1;
-    $_SESSION['user_name'] = 'João Silva';
-    $_SESSION['user_email'] = 'joao@email.com';
+$db = getDB();
+
+$authResponse = apiCheckAuth();
+$sessionUser = null;
+
+if (isApiResponseValid($authResponse) && $authResponse['success'] && ($authResponse['data']['logged_in'] ?? false)) {
+    $sessionUser = $authResponse['data']['user'] ?? null;
+} else {
+    if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] && isset($_SESSION['user_data'])) {
+        $sessionUser = $_SESSION['user_data'];
+    }
 }
 
-$db = getDB();
-$userId = $_SESSION['user_id'];
+if (!$sessionUser || empty($sessionUser['id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+$userId = (int)$sessionUser['id'];
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $path = strtok($_SERVER['REQUEST_URI'] ?? '/rewards.php', '?');
@@ -23,13 +34,13 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
 // Buscar dados do usuário
 $user = getUserById($db, $userId);
 if (!$user) {
-    $stmt = $db->prepare("INSERT INTO users (id, name, email, password, points) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE points = points");
-    $stmt->execute([1, 'João Silva', 'joao@email.com', password_hash('123456', PASSWORD_DEFAULT), 250]);
-    $user = getUserById($db, $userId);
+    $user = [
+        'id' => $userId,
+        'name' => $sessionUser['name'] ?? '',
+        'email' => $sessionUser['email'] ?? '',
+        'points' => 0
+    ];
 }
-
-syncUserPointsBalance($db, $userId, 90);
-$user = getUserById($db, $userId) ?: $user;
 
 // Buscar todos os prêmios
 $rewards = getRewards($db);
@@ -161,22 +172,22 @@ if (isset($_POST['action']) && $_POST['action'] === 'redeem' && isset($_POST['re
             <div class="row mb-4">
                 <div class="col-lg-6 mx-auto">
                     <?php if (isset($_SESSION['success_message'])): ?>
-                    <div class="glass-panel p-3 border-success border-opacity-25 d-flex align-items-center">
+                    <div class="glass-panel p-3 border-success border-opacity-25 d-flex align-items-center alert alert-success alert-dismissible fade show mb-0">
                         <div class="bg-success bg-opacity-10 p-2 rounded-circle me-3">
                             <i class="fas fa-check text-success"></i>
                         </div>
                         <div><?php echo $_SESSION['success_message']; unset($_SESSION['success_message']); ?></div>
-                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fechar"></button>
                     </div>
                     <?php endif; ?>
                     
                     <?php if (isset($_SESSION['error_message'])): ?>
-                    <div class="glass-panel p-3 border-danger border-opacity-25 d-flex align-items-center">
+                    <div class="glass-panel p-3 border-danger border-opacity-25 d-flex align-items-center alert alert-danger alert-dismissible fade show mb-0">
                         <div class="bg-danger bg-opacity-10 p-2 rounded-circle me-3">
                             <i class="fas fa-exclamation text-danger"></i>
                         </div>
                         <div><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></div>
-                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fechar"></button>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -261,7 +272,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'redeem' && isset($_POST['re
                         </div>
                         
                         <div class="table-responsive">
-                            <table class="table table-custom mb-0">
+                            <table class="table table-dark table-hover align-middle mb-0">
                                 <thead>
                                     <tr>
                                         <th class="border-0 opacity-50 small text-uppercase">Prêmio</th>
@@ -337,7 +348,5 @@ if (isset($_POST['action']) && $_POST['action'] === 'redeem' && isset($_POST['re
             }
         });
     </script>
-</body>
-</html>
 </body>
 </html>
