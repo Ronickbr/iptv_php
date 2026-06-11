@@ -26,23 +26,72 @@ try {
     };
 
     if ($method === 'POST') {
+        if ($action === 'logout') {
+            $logoutResponse = apiLogout();
+
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            session_destroy();
+
+            if (isApiResponseValid($logoutResponse)) {
+                apiJsonResponse(true, 'Logout realizado com sucesso');
+            } else {
+                apiJsonResponse(true, 'Logout realizado com sucesso (sessão local)');
+            }
+        }
+
+        if ($action === 'forgot_password') {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $email = sanitizeInput($input['email'] ?? '');
+
+            if ($email === '' || !isValidEmail($email)) {
+                apiJsonResponse(false, 'Email inválido', null, 400);
+            }
+
+            $forgotResponse = apiForgotPassword($email);
+            if (isApiResponseValid($forgotResponse) && $forgotResponse['success']) {
+                apiJsonResponse(true, $forgotResponse['message'] ?? 'Solicitação processada', $forgotResponse['data'] ?? null);
+            }
+
+            $errorMessage = getApiResponseError($forgotResponse) ?: 'Não foi possível processar sua solicitação';
+            apiJsonResponse(false, $errorMessage, null, 400);
+        }
+
+        if ($action === 'reset_password') {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $token = trim((string)($input['token'] ?? ''));
+            $password = (string)($input['password'] ?? '');
+
+            if ($token === '' || $password === '') {
+                apiJsonResponse(false, 'Token e senha são obrigatórios', null, 400);
+            }
+
+            $resetResponse = apiResetPassword($token, $password);
+            if (isApiResponseValid($resetResponse) && $resetResponse['success']) {
+                apiJsonResponse(true, $resetResponse['message'] ?? 'Senha redefinida com sucesso', $resetResponse['data'] ?? null);
+            }
+
+            $errorMessage = getApiResponseError($resetResponse) ?: 'Não foi possível redefinir a senha';
+            apiJsonResponse(false, $errorMessage, null, 400);
+        }
+
         // Login
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input || !isset($input['email']) || !isset($input['password'])) {
             apiJsonResponse(false, 'Email e senha são obrigatórios', null, 400);
         }
-        
+
         $email = sanitizeInput($input['email']);
         $password = $input['password'];
-        
+
         if (!isValidEmail($email)) {
             apiJsonResponse(false, 'Email inválido', null, 400);
         }
-        
-        // Fazer login via API
+
         $loginResponse = apiLogin($email, $password);
-        
+
         if (isApiResponseValid($loginResponse) && $loginResponse['success']) {
             $apiUser = $loginResponse['data']['user'] ?? null;
             $normalizedUser = $normalizeUser($apiUser);
@@ -95,22 +144,6 @@ try {
         }
 
         apiJsonResponse(false, 'Não autenticado', ['logged_in' => false], 401);
-        
-    } elseif ($method === 'POST' && $action === 'logout') {
-        // Logout
-        $logoutResponse = apiLogout();
-        
-        // Limpar sessão local independentemente da resposta da API
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        session_destroy();
-        
-        if (isApiResponseValid($logoutResponse)) {
-            apiJsonResponse(true, 'Logout realizado com sucesso');
-        } else {
-            apiJsonResponse(true, 'Logout realizado com sucesso (sessão local)');
-        }
         
     } else {
         apiJsonResponse(false, 'Ação não suportada', null, 400);

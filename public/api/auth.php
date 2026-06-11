@@ -87,6 +87,128 @@ switch ($method) {
                 }
                 break;
                 
+            case 'forgot_password':
+                ApiUtils::validateMethod(['POST']);
+
+                $email = trim((string)($input['email'] ?? ''));
+                if ($email === '' || !ApiUtils::validateEmail($email)) {
+                    echo ApiUtils::error('Email inválido', 400);
+                    exit();
+                }
+
+                $token = null;
+                $resetUrl = null;
+                $mailSent = false;
+
+                try {
+                    $stmt = $db->prepare("SELECT id, email, status FROM users WHERE email = ? AND status = 'active' LIMIT 1");
+                    $stmt->execute([$email]);
+                    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if ($user) {
+                        $token = bin2hex(random_bytes(32));
+                        $tokenHash = hash('sha256', $token);
+                        $expiresAt = (new DateTimeImmutable('now'))->add(new DateInterval('PT30M'))->format('Y-m-d H:i:s');
+
+                        $requestedIp = $_SERVER['REMOTE_ADDR'] ?? null;
+                        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+                        if (is_string($userAgent) && function_exists('mb_substr')) {
+                            $userAgent = mb_substr($userAgent, 0, 255);
+                        } elseif (is_string($userAgent)) {
+                            $userAgent = substr($userAgent, 0, 255);
+                        }
+
+                        $insert = $db->prepare("INSERT INTO password_resets (user_id, token_hash, expires_at, requested_ip, user_agent) VALUES (?, ?, ?, ?, ?)");
+                        $insert->execute([(int)$user['id'], $tokenHash, $expiresAt, $requestedIp, $userAgent]);
+
+                        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+                            (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') ? 'https' : 'http';
+                        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                        $baseUrl = rtrim((string)(getenv('APP_URL') ?: ($scheme . '://' . $host)), '/');
+                        $resetUrl = $baseUrl . '/login.php?token=' . urlencode($token);
+
+                        $from = (string)(getenv('MAIL_FROM') ?: '');
+                        $appName = (string)(getenv('APP_NAME') ?: 'KMKZ IPTV');
+
+                        if ($from !== '' && function_exists('mail')) {
+                            $subject = $appName . ' - Redefinição de senha';
+                            $body = "Olá!\n\nRecebemos uma solicitação para redefinir sua senha.\n\nAbra o link abaixo para criar uma nova senha (válido por 30 minutos):\n{$resetUrl}\n\nSe você não solicitou, ignore este email.\n";
+                            $headers = [];
+                            $headers[] = 'From: ' . $from;
+                            $headers[] = 'Content-Type: text/plain; charset=UTF-8';
+                            $mailSent = @mail($email, $subject, $body, implode("\r\n", $headers));
+                        }
+                    }
+                } catch (Exception $e) {
+                    if (defined('API_DEBUG') && API_DEBUG) {
+                        echo ApiUtils::error('Erro interno do servidor', 500, $e->getMessage());
+                        exit();
+                    }
+                    echo ApiUtils::error('Recuperação de senha indisponível no momento', 500);
+                    exit();
+                }
+
+                $data = [
+                    'mail_sent' => $mailSent
+                ];
+                if (defined('API_DEBUG') && API_DEBUG && $resetUrl) {
+                    $data['reset_url'] = $resetUrl;
+                }
+
+                echo ApiUtils::success($data, 'Se o email estiver cadastrado, você receberá um link para redefinir sua senha.');
+                break;
+
+            case 'reset_password':
+                ApiUtils::validateMethod(['POST']);
+
+                $token = trim((string)($input['token'] ?? ''));
+                $password = (string)($input['password'] ?? '');
+
+                if ($token === '' || $password === '') {
+                    echo ApiUtils::error('Token e senha são obrigatórios', 400);
+                    exit();
+                }
+                if (!ApiUtils::validatePassword($password)) {
+                    echo ApiUtils::error('Senha inválida', 400);
+                    exit();
+                }
+
+                try {
+                    $tokenHash = hash('sha256', $token);
+
+                    $stmt = $db->prepare("SELECT pr.id, pr.user_id 
+                        FROM password_resets pr
+                        WHERE pr.token_hash = ?
+                          AND pr.used_at IS NULL
+                          AND pr.expires_at > NOW()
+                        LIMIT 1");
+                    $stmt->execute([$tokenHash]);
+                    $reset = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if (!$reset) {
+                        echo ApiUtils::error('Link inválido ou expirado. Solicite um novo.', 400);
+                        exit();
+                    }
+
+                    $db->beginTransaction();
+                    $newHash = ApiUtils::hashPassword($password);
+                    $updateUser = $db->prepare("UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?");
+                    $updateUser->execute([$newHash, (int)$reset['user_id']]);
+
+                    $markUsed = $db->prepare("UPDATE password_resets SET used_at = NOW() WHERE id = ?");
+                    $markUsed->execute([(int)$reset['id']]);
+
+                    $db->commit();
+
+                    echo ApiUtils::success(null, 'Senha alterada com sucesso. Faça login novamente.');
+                } catch (Exception $e) {
+                    if ($db->inTransaction()) {
+                        $db->rollBack();
+                    }
+                    echo ApiUtils::error('Erro interno do servidor', 500, $e->getMessage());
+                }
+                break;
+
             case 'register':
                 ApiUtils::validateMethod(['POST']);
                 

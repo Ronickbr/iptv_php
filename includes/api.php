@@ -155,6 +155,32 @@ function apiLogout() {
 }
 
 /**
+ * Função para solicitar recuperação de senha via API
+ *
+ * @param string $email
+ * @return array
+ */
+function apiForgotPassword($email) {
+    return makeApiRequest('/api/auth.php?action=forgot_password', 'POST', [
+        'email' => $email
+    ]);
+}
+
+/**
+ * Função para redefinir senha via API
+ *
+ * @param string $token
+ * @param string $password
+ * @return array
+ */
+function apiResetPassword($token, $password) {
+    return makeApiRequest('/api/auth.php?action=reset_password', 'POST', [
+        'token' => $token,
+        'password' => $password
+    ]);
+}
+
+/**
  * Função para obter lista de planos
  * 
  * @return array
@@ -240,7 +266,16 @@ function getApiResponseData($response) {
  */
 function getApiResponseError($response) {
     if (is_array($response)) {
-        return $response['error'] ?? 'Erro desconhecido';
+        if (isset($response['error']) && is_string($response['error'])) {
+            return $response['error'];
+        }
+        if (isset($response['error']) && is_array($response['error']) && isset($response['error']['message'])) {
+            return (string)$response['error']['message'];
+        }
+        if (isset($response['message']) && is_string($response['message']) && $response['message'] !== '') {
+            return $response['message'];
+        }
+        return 'Erro desconhecido';
     }
     return 'Erro de comunicação com a API';
 }
