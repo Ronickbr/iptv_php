@@ -963,7 +963,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
         async function apiCall(endpoint, options = {}) {
             try {
                 const url = `${API_BASE}/${endpoint}`;
-                console.log('API URL:', url);
+                
                 
                 const response = await fetch(url, {
                     headers: {
@@ -973,10 +973,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     ...options
                 });
                 
-                console.log('Response status:', response.status);
-                
                 const responseText = await response.text();
-                console.log('Response text:', responseText);
 
                 let data = null;
                 try {

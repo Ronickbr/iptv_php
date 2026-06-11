@@ -69,117 +69,176 @@ function handleAdminDashboard($db) {
     try {
         // Estatísticas gerais
         $stats = getGeneralStats($db);
+
+        $monthlyRevenueValue = 0.0;
+        if (dbTableExists($db, 'payments') && dbColumnExists($db, 'payments', 'amount') && dbColumnExists($db, 'payments', 'created_at') && dbColumnExists($db, 'payments', 'status')) {
+            $monthlyRevenueValue = (float)dbFetchValue(
+                $db,
+                "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'completed' AND DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')",
+                [],
+                0
+            );
+        }
+
+        $pendingPaymentsCount = 0;
+        if (dbTableExists($db, 'payments') && dbColumnExists($db, 'payments', 'status')) {
+            $pendingPaymentsCount = (int)dbFetchValue($db, "SELECT COUNT(*) FROM payments WHERE status = 'pending'", [], 0);
+        }
+
+        $statsSummary = [
+            'total_users' => (int)($stats['users']['total'] ?? 0),
+            'active_subscriptions' => (int)($stats['users']['active_subscriptions'] ?? 0),
+            'monthly_revenue' => number_format($monthlyRevenueValue, 2, ',', '.'),
+            'pending_payments' => $pendingPaymentsCount,
+            'details' => $stats
+        ];
         
         // Receita mensal
-        $stmt = $db->query("
-            SELECT 
-                DATE_FORMAT(created_at, '%Y-%m') as month,
-                SUM(amount) as revenue,
-                COUNT(*) as payments
-            FROM payments 
-            WHERE status = 'completed' 
-            AND created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-            ORDER BY month
-        ");
-        $monthlyRevenue = $stmt->fetchAll();
+        $monthlyRevenue = [];
+        if (dbTableExists($db, 'payments') && dbColumnExists($db, 'payments', 'created_at') && dbColumnExists($db, 'payments', 'amount') && dbColumnExists($db, 'payments', 'status')) {
+            $monthlyRevenue = dbFetchAll($db, "
+                SELECT 
+                    DATE_FORMAT(created_at, '%Y-%m') as month,
+                    SUM(amount) as revenue,
+                    COUNT(*) as payments
+                FROM payments 
+                WHERE status = 'completed' 
+                AND created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+                ORDER BY month
+            ");
+        }
         
         // Crescimento de usuários
-        $stmt = $db->query("
-            SELECT 
-                DATE_FORMAT(created_at, '%Y-%m') as month,
-                COUNT(*) as new_users
-            FROM users 
-            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-            ORDER BY month
-        ");
-        $userGrowth = $stmt->fetchAll();
+        $userGrowth = [];
+        if (dbTableExists($db, 'users') && dbColumnExists($db, 'users', 'created_at')) {
+            $userGrowth = dbFetchAll($db, "
+                SELECT 
+                    DATE_FORMAT(created_at, '%Y-%m') as month,
+                    COUNT(*) as new_users
+                FROM users 
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+                ORDER BY month
+            ");
+        }
         
         // Assinaturas por plano
-        $stmt = $db->query("
-            SELECT 
-                p.name as plan_name,
-                COUNT(s.id) as subscriptions,
-                SUM(p.price) as revenue
-            FROM subscriptions s
-            JOIN plans p ON s.plan_id = p.id
-            WHERE s.status = 'active'
-            GROUP BY p.id
-            ORDER BY subscriptions DESC
-        ");
-        $subscriptionsByPlan = $stmt->fetchAll();
+        $subscriptionsByPlan = [];
+        if (dbTableExists($db, 'subscriptions') && dbTableExists($db, 'plans') && dbColumnExists($db, 'subscriptions', 'plan_id') && dbColumnExists($db, 'plans', 'id')) {
+            $where = dbColumnExists($db, 'subscriptions', 'status') ? "WHERE s.status = 'active'" : '';
+            $subscriptionsByPlan = dbFetchAll($db, "
+                SELECT 
+                    p.name as plan_name,
+                    COUNT(s.id) as subscriptions,
+                    SUM(p.price) as revenue
+                FROM subscriptions s
+                JOIN plans p ON s.plan_id = p.id
+                {$where}
+                GROUP BY p.id
+                ORDER BY subscriptions DESC
+            ");
+        }
         
         // Métodos de pagamento mais usados
-        $stmt = $db->query("
-            SELECT 
-                payment_method,
-                COUNT(*) as count,
-                SUM(amount) as revenue
-            FROM payments 
-            WHERE status = 'completed'
-            GROUP BY payment_method
-            ORDER BY count DESC
-        ");
-        $paymentMethods = $stmt->fetchAll();
+        $paymentMethods = [];
+        if (dbTableExists($db, 'payments') && dbColumnExists($db, 'payments', 'payment_method') && dbColumnExists($db, 'payments', 'amount')) {
+            $where = dbColumnExists($db, 'payments', 'status') ? "WHERE status = 'completed'" : '';
+            $paymentMethods = dbFetchAll($db, "
+                SELECT 
+                    payment_method,
+                    COUNT(*) as count,
+                    SUM(amount) as revenue
+                FROM payments 
+                {$where}
+                GROUP BY payment_method
+                ORDER BY count DESC
+            ");
+        }
         
         // Usuários mais ativos (por pontos)
-        $stmt = $db->query("
-            SELECT 
-                u.id,
-                u.name,
-                u.email,
-                u.points,
-                u.created_at
-            FROM users u
-            WHERE u.status = 'active'
-            ORDER BY u.points DESC
-            LIMIT 10
-        ");
-        $topUsers = $stmt->fetchAll();
+        $topUsers = [];
+        if (dbTableExists($db, 'users')) {
+            $statusWhere = dbColumnExists($db, 'users', 'status') ? "WHERE u.status = 'active'" : '';
+            $orderBy = dbColumnExists($db, 'users', 'points') ? 'u.points DESC' : (dbColumnExists($db, 'users', 'created_at') ? 'u.created_at DESC' : 'u.id DESC');
+            $selectPoints = dbColumnExists($db, 'users', 'points') ? ', u.points' : '';
+            $selectCreatedAt = dbColumnExists($db, 'users', 'created_at') ? ', u.created_at' : '';
+            $topUsers = dbFetchAll($db, "
+                SELECT 
+                    u.id,
+                    u.name,
+                    u.email
+                    {$selectPoints}
+                    {$selectCreatedAt}
+                FROM users u
+                {$statusWhere}
+                ORDER BY {$orderBy}
+                LIMIT 10
+            ");
+        }
         
         // Assinaturas expirando nos próximos 7 dias
-        $stmt = $db->query("
-            SELECT 
-                s.id,
-                s.end_date,
-                u.name as user_name,
-                u.email as user_email,
-                p.name as plan_name
-            FROM subscriptions s
-            JOIN users u ON s.user_id = u.id
-            JOIN plans p ON s.plan_id = p.id
-            WHERE s.status = 'active'
-            AND s.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
-            ORDER BY s.end_date ASC
-        ");
-        $expiringSoon = $stmt->fetchAll();
+        $expiringSoon = [];
+        if (
+            dbTableExists($db, 'subscriptions') &&
+            dbTableExists($db, 'users') &&
+            dbTableExists($db, 'plans') &&
+            dbColumnExists($db, 'subscriptions', 'end_date') &&
+            dbColumnExists($db, 'subscriptions', 'user_id') &&
+            dbColumnExists($db, 'subscriptions', 'plan_id')
+        ) {
+            $statusWhere = dbColumnExists($db, 'subscriptions', 'status') ? "s.status = 'active' AND " : '';
+            $expiringSoon = dbFetchAll($db, "
+                SELECT 
+                    s.id,
+                    s.end_date,
+                    u.name as user_name,
+                    u.email as user_email,
+                    p.name as plan_name
+                FROM subscriptions s
+                JOIN users u ON s.user_id = u.id
+                JOIN plans p ON s.plan_id = p.id
+                WHERE {$statusWhere}
+                s.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+                ORDER BY s.end_date ASC
+            ");
+        }
         
         // Pagamentos pendentes
-        $stmt = $db->query("
-            SELECT 
-                p.id,
-                p.amount,
-                p.payment_method,
-                p.created_at,
-                u.name as user_name,
-                u.email as user_email,
-                pl.name as plan_name
-            FROM payments p
-            JOIN subscriptions s ON p.subscription_id = s.id
-            JOIN users u ON s.user_id = u.id
-            JOIN plans pl ON s.plan_id = pl.id
-            WHERE p.status = 'pending'
-            ORDER BY p.created_at DESC
-            LIMIT 10
-        ");
-        $pendingPayments = $stmt->fetchAll();
+        $pendingPayments = [];
+        if (
+            dbTableExists($db, 'payments') &&
+            dbTableExists($db, 'subscriptions') &&
+            dbTableExists($db, 'users') &&
+            dbTableExists($db, 'plans') &&
+            dbColumnExists($db, 'payments', 'subscription_id') &&
+            dbColumnExists($db, 'payments', 'status') &&
+            dbColumnExists($db, 'payments', 'created_at')
+        ) {
+            $pendingPayments = dbFetchAll($db, "
+                SELECT 
+                    p.id,
+                    p.amount,
+                    p.payment_method,
+                    p.created_at,
+                    u.name as user_name,
+                    u.email as user_email,
+                    pl.name as plan_name
+                FROM payments p
+                JOIN subscriptions s ON p.subscription_id = s.id
+                JOIN users u ON s.user_id = u.id
+                JOIN plans pl ON s.plan_id = pl.id
+                WHERE p.status = 'pending'
+                ORDER BY p.created_at DESC
+                LIMIT 10
+            ");
+        }
         
         // Atividade recente
         $recentActivity = getRecentActivity($db, 20);
         
         $dashboard = [
-            'stats' => $stats,
+            'stats' => $statsSummary,
             'charts' => [
                 'monthly_revenue' => $monthlyRevenue,
                 'user_growth' => $userGrowth,
@@ -196,8 +255,8 @@ function handleAdminDashboard($db) {
         
         echo ApiUtils::success($dashboard, 'Dashboard administrativo obtido com sucesso');
         
-    } catch (Exception $e) {
-        echo ApiUtils::error('Erro ao obter dashboard administrativo');
+    } catch (Throwable $e) {
+        echo ApiUtils::error('Erro ao obter dashboard administrativo', 500, $e->getMessage());
     }
 }
 
@@ -535,37 +594,77 @@ function handleMarkNotificationRead($db, $input) {
  * Obter estatísticas gerais
  */
 function getGeneralStats($db) {
+    if (!dbTableExists($db, 'users')) {
+        return [
+            'users' => [
+                'total' => 0,
+                'new_today' => 0,
+                'active_subscriptions' => 0,
+                'conversion_rate' => 0
+            ],
+            'revenue' => [
+                'total' => 0,
+                'today' => 0
+            ],
+            'points' => [
+                'total_in_circulation' => 0,
+                'rewards_redeemed_today' => 0
+            ]
+        ];
+    }
+
     // Total de usuários
-    $stmt = $db->query("SELECT COUNT(*) as total FROM users WHERE status = 'active'");
-    $totalUsers = $stmt->fetch()['total'];
+    $usersWhere = dbColumnExists($db, 'users', 'status') ? "WHERE status = 'active'" : '';
+    $totalUsers = (int)dbFetchValue($db, "SELECT COUNT(*) FROM users {$usersWhere}", [], 0);
     
     // Usuários novos hoje
-    $stmt = $db->query("SELECT COUNT(*) as total FROM users WHERE DATE(created_at) = CURDATE()");
-    $newUsersToday = $stmt->fetch()['total'];
+    $newUsersToday = 0;
+    if (dbColumnExists($db, 'users', 'created_at')) {
+        $newUsersToday = (int)dbFetchValue($db, "SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()", [], 0);
+    }
     
     // Total de assinaturas ativas
-    $stmt = $db->query("SELECT COUNT(*) as total FROM subscriptions WHERE status = 'active'");
-    $activeSubscriptions = $stmt->fetch()['total'];
+    $activeSubscriptions = 0;
+    if (dbTableExists($db, 'subscriptions')) {
+        $subWhere = dbColumnExists($db, 'subscriptions', 'status') ? "WHERE status = 'active'" : '';
+        $activeSubscriptions = (int)dbFetchValue($db, "SELECT COUNT(*) FROM subscriptions {$subWhere}", [], 0);
+    }
     
     // Receita total
-    $stmt = $db->query("SELECT SUM(amount) as total FROM payments WHERE status = 'completed'");
-    $totalRevenue = $stmt->fetch()['total'] ?? 0;
+    $totalRevenue = 0;
+    if (dbTableExists($db, 'payments') && dbColumnExists($db, 'payments', 'amount')) {
+        $revWhere = dbColumnExists($db, 'payments', 'status') ? "WHERE status = 'completed'" : '';
+        $totalRevenue = (float)dbFetchValue($db, "SELECT COALESCE(SUM(amount), 0) FROM payments {$revWhere}", [], 0);
+    }
     
     // Receita hoje
-    $stmt = $db->query("
-        SELECT SUM(amount) as total 
-        FROM payments 
-        WHERE status = 'completed' AND DATE(created_at) = CURDATE()
-    ");
-    $revenueToday = $stmt->fetch()['total'] ?? 0;
+    $revenueToday = 0;
+    if (
+        dbTableExists($db, 'payments') &&
+        dbColumnExists($db, 'payments', 'amount') &&
+        dbColumnExists($db, 'payments', 'created_at') &&
+        dbColumnExists($db, 'payments', 'status')
+    ) {
+        $revenueToday = (float)dbFetchValue(
+            $db,
+            "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = 'completed' AND DATE(created_at) = CURDATE()",
+            [],
+            0
+        );
+    }
     
     // Total de pontos em circulação
-    $stmt = $db->query("SELECT SUM(points) as total FROM users WHERE status = 'active'");
-    $totalPoints = $stmt->fetch()['total'] ?? 0;
+    $totalPoints = 0;
+    if (dbColumnExists($db, 'users', 'points')) {
+        $pointsWhere = dbColumnExists($db, 'users', 'status') ? "WHERE status = 'active'" : '';
+        $totalPoints = (int)dbFetchValue($db, "SELECT COALESCE(SUM(points), 0) FROM users {$pointsWhere}", [], 0);
+    }
     
     // Recompensas resgatadas hoje
-    $stmt = $db->query("SELECT COUNT(*) as total FROM user_rewards WHERE DATE(created_at) = CURDATE()");
-    $rewardsToday = $stmt->fetch()['total'];
+    $rewardsToday = 0;
+    if (dbTableExists($db, 'user_rewards') && dbColumnExists($db, 'user_rewards', 'created_at')) {
+        $rewardsToday = (int)dbFetchValue($db, "SELECT COUNT(*) FROM user_rewards WHERE DATE(created_at) = CURDATE()", [], 0);
+    }
     
     // Taxa de conversão (usuários com assinatura ativa)
     $conversionRate = $totalUsers > 0 ? ($activeSubscriptions / $totalUsers) * 100 : 0;
@@ -595,71 +694,123 @@ function getRecentActivity($db, $limit = 50) {
     $activities = [];
     
     // Novos usuários
-    $stmt = $db->prepare("
-        SELECT 
-            'user_registered' as type,
-            name as user_name,
-            created_at,
-            'Novo usuário registrado' as description
-        FROM users 
-        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        ORDER BY created_at DESC
-        LIMIT ?
-    ");
-    $stmt->execute([intval($limit / 4)]);
-    $activities = array_merge($activities, $stmt->fetchAll());
+    if (dbTableExists($db, 'users') && dbColumnExists($db, 'users', 'created_at')) {
+        $activities = array_merge(
+            $activities,
+            dbFetchAll(
+                $db,
+                "
+                    SELECT 
+                        'user_registered' as type,
+                        name as user_name,
+                        created_at,
+                        'Novo usuário registrado' as description
+                    FROM users 
+                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    ORDER BY created_at DESC
+                    LIMIT ?
+                ",
+                [intval($limit / 4)]
+            )
+        );
+    }
     
     // Novas assinaturas
-    $stmt = $db->prepare("
-        SELECT 
-            'subscription_created' as type,
-            u.name as user_name,
-            s.created_at,
-            CONCAT('Nova assinatura: ', p.name) as description
-        FROM subscriptions s
-        JOIN users u ON s.user_id = u.id
-        JOIN plans p ON s.plan_id = p.id
-        WHERE s.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        ORDER BY s.created_at DESC
-        LIMIT ?
-    ");
-    $stmt->execute([intval($limit / 4)]);
-    $activities = array_merge($activities, $stmt->fetchAll());
+    if (
+        dbTableExists($db, 'subscriptions') &&
+        dbTableExists($db, 'users') &&
+        dbTableExists($db, 'plans') &&
+        dbColumnExists($db, 'subscriptions', 'created_at') &&
+        dbColumnExists($db, 'subscriptions', 'user_id') &&
+        dbColumnExists($db, 'subscriptions', 'plan_id')
+    ) {
+        $activities = array_merge(
+            $activities,
+            dbFetchAll(
+                $db,
+                "
+                    SELECT 
+                        'subscription_created' as type,
+                        u.name as user_name,
+                        s.created_at,
+                        CONCAT('Nova assinatura: ', p.name) as description
+                    FROM subscriptions s
+                    JOIN users u ON s.user_id = u.id
+                    JOIN plans p ON s.plan_id = p.id
+                    WHERE s.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    ORDER BY s.created_at DESC
+                    LIMIT ?
+                ",
+                [intval($limit / 4)]
+            )
+        );
+    }
     
     // Pagamentos aprovados
-    $stmt = $db->prepare("
-        SELECT 
-            'payment_completed' as type,
-            u.name as user_name,
-            p.updated_at as created_at,
-            CONCAT('Pagamento aprovado: R$ ', FORMAT(p.amount, 2)) as description
-        FROM payments p
-        JOIN subscriptions s ON p.subscription_id = s.id
-        JOIN users u ON s.user_id = u.id
-        WHERE p.status = 'completed' 
-        AND p.updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        ORDER BY p.updated_at DESC
-        LIMIT ?
-    ");
-    $stmt->execute([intval($limit / 4)]);
-    $activities = array_merge($activities, $stmt->fetchAll());
+    if (
+        dbTableExists($db, 'payments') &&
+        dbTableExists($db, 'subscriptions') &&
+        dbTableExists($db, 'users') &&
+        dbColumnExists($db, 'payments', 'amount') &&
+        dbColumnExists($db, 'payments', 'status') &&
+        dbColumnExists($db, 'payments', 'subscription_id')
+    ) {
+        $dateColumn = dbColumnExists($db, 'payments', 'updated_at') ? 'p.updated_at' : (dbColumnExists($db, 'payments', 'created_at') ? 'p.created_at' : null);
+        if ($dateColumn !== null) {
+            $activities = array_merge(
+                $activities,
+                dbFetchAll(
+                    $db,
+                    "
+                        SELECT 
+                            'payment_completed' as type,
+                            u.name as user_name,
+                            {$dateColumn} as created_at,
+                            CONCAT('Pagamento aprovado: R$ ', FORMAT(p.amount, 2)) as description
+                        FROM payments p
+                        JOIN subscriptions s ON p.subscription_id = s.id
+                        JOIN users u ON s.user_id = u.id
+                        WHERE p.status = 'completed' 
+                        AND {$dateColumn} >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                        ORDER BY {$dateColumn} DESC
+                        LIMIT ?
+                    ",
+                    [intval($limit / 4)]
+                )
+            );
+        }
+    }
     
     // Recompensas resgatadas
-    $stmt = $db->prepare("
-        SELECT 
-            'reward_redeemed' as type,
-            u.name as user_name,
-            ur.created_at,
-            CONCAT('Recompensa resgatada: ', r.name) as description
-        FROM user_rewards ur
-        JOIN users u ON ur.user_id = u.id
-        JOIN rewards r ON ur.reward_id = r.id
-        WHERE ur.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        ORDER BY ur.created_at DESC
-        LIMIT ?
-    ");
-    $stmt->execute([intval($limit / 4)]);
-    $activities = array_merge($activities, $stmt->fetchAll());
+    if (
+        dbTableExists($db, 'user_rewards') &&
+        dbTableExists($db, 'users') &&
+        dbTableExists($db, 'rewards') &&
+        dbColumnExists($db, 'user_rewards', 'created_at') &&
+        dbColumnExists($db, 'user_rewards', 'user_id') &&
+        dbColumnExists($db, 'user_rewards', 'reward_id')
+    ) {
+        $activities = array_merge(
+            $activities,
+            dbFetchAll(
+                $db,
+                "
+                    SELECT 
+                        'reward_redeemed' as type,
+                        u.name as user_name,
+                        ur.created_at,
+                        CONCAT('Recompensa resgatada: ', r.name) as description
+                    FROM user_rewards ur
+                    JOIN users u ON ur.user_id = u.id
+                    JOIN rewards r ON ur.reward_id = r.id
+                    WHERE ur.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    ORDER BY ur.created_at DESC
+                    LIMIT ?
+                ",
+                [intval($limit / 4)]
+            )
+        );
+    }
     
     // Ordenar por data
     usort($activities, function($a, $b) {
@@ -667,6 +818,64 @@ function getRecentActivity($db, $limit = 50) {
     });
     
     return array_slice($activities, 0, $limit);
+}
+
+function dbTableExists($db, $tableName) {
+    static $cache = [];
+    $key = (string)$tableName;
+    if (array_key_exists($key, $cache)) {
+        return $cache[$key];
+    }
+
+    try {
+        $stmt = $db->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?');
+        $stmt->execute([$key]);
+        $cache[$key] = ((int)$stmt->fetchColumn()) > 0;
+    } catch (Throwable $e) {
+        $cache[$key] = false;
+    }
+
+    return $cache[$key];
+}
+
+function dbColumnExists($db, $tableName, $columnName) {
+    static $cache = [];
+    $key = (string)$tableName . '.' . (string)$columnName;
+    if (array_key_exists($key, $cache)) {
+        return $cache[$key];
+    }
+
+    try {
+        $stmt = $db->prepare('SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?');
+        $stmt->execute([(string)$tableName, (string)$columnName]);
+        $cache[$key] = ((int)$stmt->fetchColumn()) > 0;
+    } catch (Throwable $e) {
+        $cache[$key] = false;
+    }
+
+    return $cache[$key];
+}
+
+function dbFetchAll($db, $sql, $params = []) {
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetchAll();
+        return is_array($result) ? $result : [];
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+function dbFetchValue($db, $sql, $params = [], $default = 0) {
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $value = $stmt->fetchColumn();
+        return $value === false || $value === null ? $default : $value;
+    } catch (Throwable $e) {
+        return $default;
+    }
 }
 
 ?>
