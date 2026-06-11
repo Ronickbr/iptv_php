@@ -1066,6 +1066,36 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
             const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             window.location.href = mailtoUrl;
         }
+
+        async function requestJson(url, options = {}) {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                },
+                ...options
+            });
+
+            const responseText = await response.text();
+            let result = null;
+
+            try {
+                result = responseText ? JSON.parse(responseText) : {};
+            } catch (error) {
+                throw new Error(`Resposta invalida do servidor (${response.status})`);
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    result?.error?.message ||
+                    result?.error ||
+                    result?.message ||
+                    `Erro HTTP ${response.status}`
+                );
+            }
+
+            return result;
+        }
         
         function redeemReward(rewardId) {
             if (confirm('Deseja realmente resgatar esta recompensa?')) {
@@ -1076,14 +1106,10 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 button.disabled = true;
                 
                 // Real API call to redeem the reward
-                fetch('api/points.php?action=redeem', {
+                requestJson('api/points.php?action=redeem', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify({ reward_id: rewardId })
                 })
-                .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         // Success feedback
@@ -1106,7 +1132,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Erro de conexão ao processar o resgate.');
+                    alert(error.message || 'Erro de conexão ao processar o resgate.');
                     button.textContent = originalText;
                     button.disabled = false;
                 });
@@ -1153,8 +1179,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                 </div>
             `;
 
-            fetch(`api/points.php?action=leaderboard&period=${period}`)
-                .then(response => response.json())
+            requestJson(`api/points.php?action=leaderboard&period=${period}`)
                 .then(data => {
                     if (data.success) {
                         const leaderboard = data.data.leaderboard;
@@ -1255,7 +1280,7 @@ $metaPixelId = getenv('META_PIXEL_ID') ?: '';
                     container.innerHTML = `
                         <div class="alert bg-danger-subtle text-danger border-danger-subtle m-3">
                             <i class="fas fa-wifi-slash me-2"></i>
-                            Erro de conexão ao carregar o ranking.
+                            ${error.message || 'Erro de conexão ao carregar o ranking.'}
                         </div>
                     `;
                 });

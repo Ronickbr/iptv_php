@@ -268,6 +268,36 @@ $isResetMode = $resetToken !== '';
             return div.innerHTML;
         }
 
+        async function requestJson(url, options = {}) {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(options.headers || {})
+                },
+                ...options
+            });
+
+            const responseText = await response.text();
+            let result = null;
+
+            try {
+                result = responseText ? JSON.parse(responseText) : {};
+            } catch (error) {
+                throw new Error(`Resposta invalida do servidor (${response.status})`);
+            }
+
+            if (!response.ok) {
+                const errorMessage =
+                    result?.error?.message ||
+                    result?.error ||
+                    result?.message ||
+                    `Erro HTTP ${response.status}`;
+                throw new Error(errorMessage);
+            }
+
+            return result;
+        }
+
         // Password visibility toggle
         const togglePassword = document.getElementById('togglePassword');
         if (togglePassword) {
@@ -363,16 +393,11 @@ $isResetMode = $resetToken !== '';
             };
             
             try {
-                const response = await fetch('auth.php', {
+                const result = await requestJson('auth.php', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
                     body: JSON.stringify(formData)
                 });
-                
-                const result = await response.json();
-                
+
                 if (result.success) {
                     showAlert('Login realizado com sucesso!', 'success');
 
@@ -382,8 +407,7 @@ $isResetMode = $resetToken !== '';
                             window.location.href = role === 'admin' ? 'admin.php' : 'dashboard.php';
                         }, 600);
                     } else {
-                        const checkResponse = await fetch('auth.php?action=check');
-                        const checkResult = await checkResponse.json();
+                        const checkResult = await requestJson('auth.php?action=check');
                         
                         if (checkResult.success && checkResult.data.logged_in && checkResult.data.user?.role) {
                             const checkRole = checkResult.data.user.role;
@@ -397,7 +421,7 @@ $isResetMode = $resetToken !== '';
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                showAlert('Erro de conexão. Tente novamente.', 'error');
+                showAlert(error.message || 'Erro de conexão. Tente novamente.', 'error');
             } finally {
                 // Esconder loading
                 btnText.classList.remove('d-none');
@@ -423,13 +447,11 @@ $isResetMode = $resetToken !== '';
 
             try {
                 const email = document.getElementById('forgotEmail').value;
-                const response = await fetch('auth.php?action=forgot_password', {
+                const result = await requestJson('auth.php?action=forgot_password', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
 
-                const result = await response.json();
                 if (result.success) {
                     showAlert(result.message || 'Se o email estiver cadastrado, você receberá um link de redefinição.', 'success');
                     const modalEl = document.getElementById('forgotPasswordModal');
@@ -447,7 +469,7 @@ $isResetMode = $resetToken !== '';
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                showAlert('Erro de conexão. Tente novamente.', 'error');
+                showAlert(error.message || 'Erro de conexão. Tente novamente.', 'error');
             } finally {
                 if (btnText && btnLoading) {
                     btnText.classList.remove('d-none');
@@ -486,13 +508,10 @@ $isResetMode = $resetToken !== '';
             if (submitBtn) submitBtn.disabled = true;
 
             try {
-                const response = await fetch('auth.php?action=reset_password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const result = await requestJson('auth.php?action=reset_password', {
                     body: JSON.stringify({ token, password: newPassword })
                 });
 
-                const result = await response.json();
                 if (result.success) {
                     showAlert(result.message || 'Senha alterada com sucesso! Faça login novamente.', 'success');
                     setTimeout(() => {
@@ -503,7 +522,7 @@ $isResetMode = $resetToken !== '';
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                showAlert('Erro de conexão. Tente novamente.', 'error');
+                showAlert(error.message || 'Erro de conexão. Tente novamente.', 'error');
             } finally {
                 if (btnText && btnLoading) {
                     btnText.classList.remove('d-none');
@@ -531,8 +550,7 @@ $isResetMode = $resetToken !== '';
             }
             
             try {
-                const response = await fetch('auth.php?action=check');
-                const result = await response.json();
+                const result = await requestJson('auth.php?action=check');
                 
                 if (result.success && result.data.logged_in) {
                     // Redirecionar baseado no tipo de usuário
