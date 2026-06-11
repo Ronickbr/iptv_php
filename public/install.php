@@ -40,10 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$locked) {
 
         $pdo = createDatabaseConnection($config);
         ensureDatabaseSelected($pdo, $config['db_name']);
+        $hasRequiredTables = databaseHasTables($pdo, $config['db_name'], getRequiredDatabaseTables());
+
         if (is_file($sqlFilePath) && is_readable($sqlFilePath)) {
-            executeSqlScript($pdo, $sqlFilePath);
+            if ($forceInstall) {
+                resetDatabaseSchema($pdo, $config['db_name']);
+                executeSqlScript($pdo, $sqlFilePath);
+            } elseif (!$hasRequiredTables) {
+                executeSqlScript($pdo, $sqlFilePath);
+            }
         } else {
-            if (!databaseHasTables($pdo, $config['db_name'], getRequiredDatabaseTables())) {
+            if (!$hasRequiredTables) {
                 throw new RuntimeException('Arquivo SQL nao encontrado no servidor e o banco ainda nao possui a estrutura. Envie a pasta database/ (com init.sql) ou importe o SQL manualmente e tente novamente.');
             }
         }
@@ -240,6 +247,9 @@ function executeSqlScript(PDO $pdo, string $sqlFile): void
         try {
             $pdo->exec($sql);
         } catch (PDOException $e) {
+            if (isIgnorableSqlError($e, $sql)) {
+                continue;
+            }
             throw new RuntimeException('Erro ao executar a estrutura do banco: ' . $e->getMessage(), 0, $e);
         }
     }
@@ -280,6 +290,65 @@ function databaseHasTables(PDO $pdo, string $dbName, array $tables): bool
     } catch (Throwable $e) {
         return false;
     }
+}
+
+function resetDatabaseSchema(PDO $pdo, string $dbName): void
+{
+    $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+
+    $stmt = $pdo->prepare('SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = :schema');
+    $stmt->execute([':schema' => $dbName]);
+    $tables = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+    foreach ($tables as $row) {
+        $name = (string)($row['table_name'] ?? '');
+        $type = (string)($row['table_type'] ?? '');
+        if ($name === '') {
+            continue;
+        }
+
+        $quoted = '`' . str_replace('`', '``', $name) . '`';
+
+        if (strcasecmp($type, 'VIEW') === 0) {
+            $pdo->exec('DROP VIEW IF EXISTS ' . $quoted);
+        } else {
+            $pdo->exec('DROP TABLE IF EXISTS ' . $quoted);
+        }
+    }
+
+    $stmt = $pdo->prepare('SELECT trigger_name FROM information_schema.triggers WHERE trigger_schema = :schema');
+    $stmt->execute([':schema' => $dbName]);
+    $triggers = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+    foreach ($triggers as $row) {
+        $name = (string)($row['trigger_name'] ?? '');
+        if ($name === '') {
+            continue;
+        }
+        $quoted = '`' . str_replace('`', '``', $name) . '`';
+        $pdo->exec('DROP TRIGGER IF EXISTS ' . $quoted);
+    }
+
+    $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+}
+
+function isIgnorableSqlError(PDOException $exception, string $sql): bool
+{
+    $errorInfo = $exception->errorInfo ?? null;
+    $driverCode = is_array($errorInfo) && isset($errorInfo[1]) ? (int)$errorInfo[1] : 0;
+    $message = strtolower($exception->getMessage());
+    $normalizedSql = ltrim($sql);
+
+    $isCreateStatement = preg_match('/^(CREATE)\s+/i', $normalizedSql) === 1;
+    if (!$isCreateStatement) {
+        return false;
+    }
+
+    if (str_contains($message, 'already exists')) {
+        return true;
+    }
+
+    return in_array($driverCode, [1050, 1061, 1359], true);
 }
 
 function removeDemoUsers(PDO $pdo, string $adminEmail): void
@@ -685,6 +754,9 @@ function createDirectories(string $storageRoot): void
                 <?php endif; ?>
 
                 <form method="post">
+                    <?php if ($envExists): ?>
+                        <p class="note">Se voce ja importou o banco manualmente e as tabelas principais ja existem, o instalador vai apenas criar o admin e gerar o <code>.env</code>. Para reinstalar e recriar toda a estrutura, acesse <code>?force=1</code>.</p>
+                    <?php endif; ?>
                     <div class="section">
                         <h3>Banco de Dados</h3>
                         <div class="section-grid">
